@@ -169,36 +169,9 @@ export class TestRunner {
             const baseCommand = collection.command;
             this.logger.log(`📋 DEBUG - Commande de base: ${baseCommand}`);
             
-            let phpunitCommand = '';
-            let phpunitOptions = '';
-            let foundPhpunit = false;
-            
-            // Découper la commande pour extraire le chemin vers phpunit et les options
-            this.logger.log(`🔧 DEBUG - Parsing de la commande:`);
-            const parts = baseCommand.split(' ');
-            for (let i = 0; i < parts.length; i++) {
-                if (parts[i].includes('phpunit')) {
-                    phpunitCommand = parts.slice(0, i + 1).join(' ');
-                    phpunitOptions = parts.slice(i + 1).join(' ');
-                    foundPhpunit = true;
-                    this.logger.log(`     → PHPUnit trouvé: "${phpunitCommand}"`);
-                    this.logger.log(`     → Options: "${phpunitOptions}"`);
-                    break;
-                }
-            }
-            
-            if (!foundPhpunit) {
-                this.logger.log(`     → PHPUnit non trouvé, utilisation commande complète`);
-                phpunitCommand = baseCommand;
-            }
-            
             // Construire la commande finale avec le filtre pour la classe
             const filterOption = `--filter "${className}"`;
-            let finalCommand = `${phpunitCommand} ${filterOption}`;
-            
-            if (phpunitOptions) {
-                finalCommand += ` ${phpunitOptions}`;
-            }
+            let finalCommand = `${baseCommand} ${filterOption}`;
             
             // Ajouter le chemin du fichier à la fin
             const relativePath = path.relative(workspaceFolder.uri.fsPath, fileUri.fsPath);
@@ -222,7 +195,6 @@ export class TestRunner {
                 if (error) {
                     this.logger.log(`   Erreur: ${error.message}`);
                 }
-                this.logger.log('');
                 
                 // Traiter les résultats pour chaque méthode du fichier
                 for (const method of methodsFromFile) {
@@ -245,7 +217,11 @@ export class TestRunner {
                                 errorMessage = errorLines[0].trim();
                             }
                         }
-                    }
+                    } else if (error) {
+						status = TestStatus.Failed;
+					} else {
+						status = TestStatus.Passed;
+					}
                     
                     // Mettre à jour le statut de la méthode
                     method.status = status;
