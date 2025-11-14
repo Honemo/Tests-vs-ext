@@ -32,8 +32,8 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	// Commande pour ouvrir un fichier de test
-	const openTestFileDisposable = vscode.commands.registerCommand('tests-vs-extension.openTestFile', (uri: vscode.Uri) => {
-		testExplorerProvider.openTestFile(uri);
+	const openTestFileDisposable = vscode.commands.registerCommand('tests-vs-extension.openTestFile', (testItem) => {
+		testExplorerProvider.openTestFile(testItem.resourceUri);
 	});
 
 	// Commande pour configurer les collections de test
