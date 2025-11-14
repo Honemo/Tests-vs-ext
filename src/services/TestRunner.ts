@@ -50,12 +50,20 @@ export class TestRunner {
     /**
      * Exécute un test individuel avec capture d'output pour parsing du résultat
      */
-    async runTestMethod(testMethod: TestMethod): Promise<void> {
+    async runTestMethod(testMethod: TestMethod, onTestUpdate?: (testMethod: TestMethod) => void): Promise<void> {
         try {
             if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
                 vscode.window.showErrorMessage('Aucun workspace ouvert');
                 return;
             }
+			if (onTestUpdate) {
+				onTestUpdate({
+					...testMethod,
+					status: TestStatus.Running,
+					lastRun: new Date(),
+					errorMessage: undefined
+				});
+			}
 
             const workspaceFolder = vscode.workspace.workspaceFolders[0];
 
@@ -81,10 +89,11 @@ export class TestRunner {
             this.logger.logCommand(`Exécution test: ${testMethod.className}::${testMethod.name}`, finalCommand);
             
             // Exécuter avec capture pour parser le résultat
-            this.executeTestWithCapture(finalCommand, workspaceFolder.uri.fsPath, testMethod);
-            
+            this.executeTestWithCapture(finalCommand, workspaceFolder.uri.fsPath, testMethod, onTestUpdate);
+
             const dockerInfo = collection.useDocker ? ` 🐳 (Docker: ${collection.dockerImage})` : '';
             vscode.window.showInformationMessage(`Exécution du test: ${testMethod.name}${dockerInfo}`);
+
         } catch (error) {
             vscode.window.showErrorMessage(`Erreur: ${error}`);
         }
@@ -272,7 +281,7 @@ export class TestRunner {
     /**
      * Exécute un test avec capture de sortie pour analyse du résultat
      */
-    private executeTestWithCapture(command: string, cwd: string, testMethod: TestMethod): void {
+    private executeTestWithCapture(command: string, cwd: string, testMethod: TestMethod, onTestUpdate?: (testMethod: TestMethod) => void): void {
         
         // Exécuter en arrière-plan avec capture de sortie pour les détails d'erreur
         exec(command, { cwd }, (error, stdout, stderr) => {
@@ -353,6 +362,16 @@ export class TestRunner {
             const message = `${statusIcon} Test ${testMethod.className}::${testMethod.name}: ${status}`;
             this.logger.log(`🎯 Résultat final: ${message}`);
             this.logger.log('');
+
+			if (onTestUpdate) {
+				onTestUpdate({
+					...testMethod,
+					status: status,
+					lastRun: new Date(),
+					errorMessage: errorMessage
+				});
+			}
+			
             
             if (status === TestStatus.Failed && errorMessage) {
                 vscode.window.showErrorMessage(`${message} - ${errorMessage}`);

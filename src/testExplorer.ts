@@ -50,6 +50,8 @@ export class TestItem extends vscode.TreeItem {
                 this.iconPath = new vscode.ThemeIcon('close', new vscode.ThemeColor('testing.iconFailed'));
             } else if (testMethod.status === TestStatus.Skipped) {
                 this.iconPath = new vscode.ThemeIcon('debug-step-over', new vscode.ThemeColor('testing.iconSkipped'));
+            } else if (testMethod.status === TestStatus.Running) {
+                this.iconPath = new vscode.ThemeIcon('sync~spin', new vscode.ThemeColor('testing.iconQueued'));
             } else {
                 this.iconPath = new vscode.ThemeIcon('circle-outline');
             }
@@ -217,7 +219,9 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
     }
 
     updateTestStatus(collectionName: string, className: string, methodName: string, status: TestStatus, errorMessage?: string, failureDetails?: string): void {
-        const cached = this.cachedCollections.get(collectionName);
+        this.logger.logInfo(`🔄 Mise à jour du statut du test: ${collectionName} :: ${className} :: ${methodName} => ${status}`);
+		this.logger.logDebug(`Caca`);
+		const cached = this.cachedCollections.get(collectionName);
         if (!cached) return;
 
         const method = cached.methods.find(m => 
@@ -437,7 +441,16 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
     }
 
     async runSingleTest(testMethod: TestMethod): Promise<void> {
-        await this.testRunner.runTestMethod(testMethod);
+        await this.testRunner.runTestMethod(testMethod, (testMethod) => {
+			// Callback pour mettre à jour le statut du test
+			this.updateTestStatus(
+				testMethod.collection.name,
+				testMethod.className,
+				testMethod.name,
+				testMethod.status || TestStatus.Unknown,
+				testMethod.errorMessage
+			);
+		});
     }
 
     async runTestFile(fileUri: vscode.Uri, collection: TestCollection): Promise<void> {
