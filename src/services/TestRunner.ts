@@ -175,16 +175,20 @@ export class TestRunner {
             
             // Ajouter le chemin du fichier à la fin
             const relativePath = path.relative(workspaceFolder.uri.fsPath, fileUri.fsPath);
-            finalCommand += ` ${relativePath}`;
-            this.logger.log(`🔨 DEBUG - Commande avant Docker: ${finalCommand}`);
-            
+            finalCommand += ` ${relativePath}`;            
             // Appliquer Docker si nécessaire
             finalCommand = this.buildDockerCommand(collection, finalCommand, workspaceFolder.uri.fsPath);
-            this.logger.log(`🐳 DEBUG - Commande finale: ${finalCommand}`);
-            this.logger.log('');
-            
-            // Logger la commande
-            this.logger.logCommand(`Exécution fichier: ${fileName}`, finalCommand);
+
+			for (const method of methodsFromFile) {
+				if (onTestUpdate) {
+					onTestUpdate({
+						...method,
+						status: TestStatus.Running,
+						lastRun: new Date(),
+						errorMessage: undefined
+					});
+				}
+			}
             
             // Exécuter avec capture pour traiter chaque méthode individuellement
             exec(finalCommand, { cwd: workspaceFolder.uri.fsPath }, (error, stdout, stderr) => {
