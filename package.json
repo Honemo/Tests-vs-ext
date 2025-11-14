@@ -1,0 +1,223 @@
+{
+  "name": "tests-vs-extension",
+  "displayName": "PHP Test Collections Explorer",
+  "description": "Extension pour gérer et exécuter des collections de tests PHP",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.105.0"
+  },
+  "categories": [
+    "Testing"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "tests-vs-extension.helloWorld",
+        "title": "Hello World"
+      },
+      {
+        "command": "tests-vs-extension.forceRefresh",
+        "title": "Refresh Tests",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "tests-vs-extension.openTestFile",
+        "title": "Open Test File",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "tests-vs-extension.configureTestFolders",
+        "title": "Configure Test Collections"
+      },
+      {
+        "command": "tests-vs-extension.runTestCollection",
+        "title": "Run Test Collection",
+        "icon": "$(play)"
+      },
+      {
+        "command": "tests-vs-extension.addTestCollection",
+        "title": "Add Test Collection",
+        "icon": "$(add)"
+      },
+      {
+        "command": "tests-vs-extension.runSingleTest",
+        "title": "Run Test",
+        "icon": "$(play)"
+      },
+      {
+        "command": "tests-vs-extension.setTestStatus",
+        "title": "Set Test Status",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "tests-vs-extension.showErrorDetails",
+        "title": "Show Error Details",
+        "icon": "$(info)"
+      },
+      {
+        "command": "tests-vs-extension.showOutput",
+        "title": "Show Logs",
+        "icon": "$(output)"
+      },
+      {
+        "command": "tests-vs-extension.runTestFile",
+        "title": "Run All Tests in File",
+        "icon": "$(play)"
+      }
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "testExplorer",
+          "name": "PHP Test Collections"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "tests-vs-extension.forceRefresh",
+          "when": "view == testExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "tests-vs-extension.addTestCollection",
+          "when": "view == testExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "tests-vs-extension.showOutput",
+          "when": "view == testExplorer",
+          "group": "navigation"
+        },
+        {
+          "command": "tests-vs-extension.configureTestFolders",
+          "when": "view == testExplorer"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "tests-vs-extension.openTestFile",
+          "when": "view == testExplorer && viewItem == testFile",
+          "group": "inline"
+        },
+        {
+          "command": "tests-vs-extension.runTestFile",
+          "when": "view == testExplorer && viewItem == testFile",
+          "group": "inline"
+        },
+        {
+          "command": "tests-vs-extension.runTestCollection",
+          "when": "view == testExplorer && viewItem == testCollection",
+          "group": "inline"
+        },
+        {
+          "command": "tests-vs-extension.runSingleTest",
+          "when": "view == testExplorer && viewItem == testMethod",
+          "group": "inline"
+        },
+        {
+          "command": "tests-vs-extension.setTestStatus",
+          "when": "view == testExplorer && viewItem == testMethod"
+        },
+        {
+          "command": "tests-vs-extension.showErrorDetails",
+          "when": "view == testExplorer && viewItem == testMethod",
+          "group": "inline"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "PHP Test Collections",
+      "properties": {
+        "phpTestCollections.collections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Nom de la collection de tests"
+              },
+              "path": {
+                "type": "string",
+                "description": "Chemin du dossier contenant les tests"
+              },
+              "command": {
+                "type": "string",
+                "description": "Commande pour exécuter les tests (ex: 'vendor/bin/phpunit', 'composer test')"
+              },
+              "pattern": {
+                "type": "string",
+                "description": "Pattern pour les fichiers de test",
+                "default": "**/*Test.php"
+              },
+              "useDocker": {
+                "type": "boolean",
+                "description": "Exécuter les tests dans un conteneur Docker",
+                "default": false
+              },
+              "dockerImage": {
+                "type": "string",
+                "description": "Nom de l'image Docker à utiliser (ex: 'php:8.2-cli', 'mon-app:latest')"
+              }
+            },
+            "required": ["name", "path", "command"]
+          },
+          "default": [
+            {
+              "name": "Unit Tests",
+              "path": "tests/Unit",
+              "command": "vendor/bin/phpunit tests/Unit",
+              "pattern": "**/*Test.php",
+              "useDocker": false
+            },
+            {
+              "name": "Feature Tests",
+              "path": "tests/Feature",
+              "command": "vendor/bin/phpunit tests/Feature",
+              "pattern": "**/*Test.php",
+              "useDocker": false
+            },
+            {
+              "name": "Docker Integration Tests",
+              "path": "tests/Integration",
+              "command": "vendor/bin/phpunit tests/Integration",
+              "pattern": "**/*Test.php",
+              "useDocker": true,
+              "dockerImage": "php:8.2-cli"
+            }
+          ],
+          "description": "Collections de tests PHP configurées"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.105.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "@typescript-eslint/eslint-plugin": "^8.45.0",
+    "@typescript-eslint/parser": "^8.45.0",
+    "eslint": "^9.36.0",
+    "typescript": "^5.9.3",
+    "ts-loader": "^9.5.4",
+    "webpack": "^5.102.0",
+    "webpack-cli": "^6.0.1",
+    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-electron": "^2.5.2"
+  }
+}

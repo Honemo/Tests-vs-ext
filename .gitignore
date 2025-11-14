@@ -1,0 +1,8 @@
+out
+dist
+node_modules
+.vscode-test/
+*.vsix
+
+# PHP Test Collections Cache (workspace-specific)
+.vscode/php-test-collections-cache*.json

@@ -1,0 +1,29 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+	"files.exclude": {
+		"out": false, // set this to true to hide the "out" folder with the compiled JS files
+		"dist": false // set this to true to hide the "dist" folder with the compiled JS files
+	},
+	"search.exclude": {
+		"out": true, // set this to false to include "out" folder in search results
+		"dist": true // set this to false to include "dist" folder in search results
+	},
+	// Turn off tsc task auto detection since we have the necessary tasks as npm scripts
+	"typescript.tsc.autoDetect": "off",
+	
+	// Configuration pour l'extension Test Explorer
+	"phpTestCollections.collections": [
+		{
+			"name": "Unit Tests",
+			"path": "./tests/Unit",
+			"command": "vendor/bin/phpunit",
+			"pattern": "*Test.php"
+		},
+		{
+			"name": "Feature Tests", 
+			"path": "./tests/Feature",
+			"command": "vendor/bin/phpunit",
+			"pattern": "*Test.php"
+		}
+	]
+}
