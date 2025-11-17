@@ -1,7 +1,7 @@
 {
   "name": "tests-vs-extension",
-  "displayName": "PHP Test Collections Explorer",
-  "description": "Extension pour gérer et exécuter des collections de tests PHP",
+  "displayName": "Tests Explorer",
+  "description": "Extension to manage and run test collections",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.105.0"
