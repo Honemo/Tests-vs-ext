@@ -1,105 +1,41 @@
 # PHP Test Collections Explorer
 
-Extension VS Code spécialisée pour gérer et exécuter des collections de tests PHP. Cette extension permet d'organiser vos tests en collections configurables avec des commandes d'exécution personnalisées.
+A powerful VS Code extension for exploring, organizing, and executing PHP test collections with comprehensive Docker support.
 
-## Fonctionnalités
-
-### � Collections de Tests
-- **Organisation par collections** : Groupez vos tests logiquement (Unit, Feature, Integration, etc.)
-- **Configuration flexible** : Définissez le chemin, la commande et les patterns pour chaque collection
-- **Exécution directe** : Lancez vos tests directement depuis l'interface
-- **Compteurs en temps réel** : Voyez le nombre de tests par collection
-
-### 🎯 Support PHP/PHPUnit
-- **Patterns PHP** : Détection automatique des fichiers `*Test.php`
-- **Commandes PHPUnit** : Support des commandes `vendor/bin/phpunit`, `composer test`, etc.
-- **Exclusions intelligentes** : Ignore automatiquement le dossier `vendor/`
-
-### ⚙️ Commandes disponibles
-- **Add Test Collection** : Ajouter une nouvelle collection
-- **Run Test Collection** : Exécuter tous les tests d'une collection
-- **Run Test** : Exécuter un test individuel spécifique
-- **Refresh Tests** : Actualiser la liste des tests
-- **Configure Collections** : Ouvrir les paramètres de configuration
-- **Open Test File** : Ouvrir directement un fichier de test
-
-### 🎯 Tests individuels
-- **Parsing automatique** : Détection des méthodes `testXxx()` et `@test`
-- **Vue hiérarchique** : Collection → Fichier → Méthodes de test
-- **Exécution ciblée** : Bouton ▶️ sur chaque test individuel
-- **Support annotations** : Détection des méthodes avec `@test`
-
-### 🖥️ Gestion intelligente des terminaux
-- **Terminal unique par collection** : Réutilise le même terminal pour tous les tests d'une collection
-- **Nettoyage automatique** : Détection et suppression des terminaux fermés
-- **Nommage clair** : Terminaux nommés `Tests: [Collection Name]`
-- **Réutilisation** : Les tests individuels utilisent le terminal de leur collection
-
-### ⚡ Système de cache et d'état
-- **Cache persistant** : Stockage des tests découverts pour un chargement plus rapide
-- **États de test** : Suivi du statut de chaque test (✅ Passé, ❌ Échoué, 🔄 En cours)
-- **Indicateurs visuels** : Icônes colorées pour identifier rapidement l'état des tests
-- **Optimisation** : Refresh automatique du cache toutes les 5 minutes seulement
-
-### 📊 États des tests disponibles
-- ⚪ **Unknown** : Test jamais exécuté ou statut inconnu
-- 🔄 **Running** : Test en cours d'exécution
-- ✅ **Passed** : Test réussi lors de la dernière exécution
-- ❌ **Failed** : Test échoué avec assertion failed
-- 💥 **Error** : Test avec erreur (exception, erreur fatale)
-- ⏭️ **Skipped** : Test ignoré
-
-### 🔧 Collections par défaut
-L'extension vient préconfigurée avec :
-- **Unit Tests** : `tests/Unit/` avec `vendor/bin/phpunit tests/Unit`
-- **Feature Tests** : `tests/Feature/` avec `vendor/bin/phpunit tests/Feature`
-
-### 📋 Structure d'affichage
-```
-📚 Unit Tests (2 files)
-├── 📄 CalculatorTest.php (6 tests)
-│   ├── 🧪 testAddition
-│   ├── 🧪 testSubtraction  
-│   ├── 🧪 testMultiplication
-│   ├── 🧪 testDivision
-│   ├── 🧪 testModulo
-│   └── 🧪 powerOperation (@test)
-└── 📄 StringUtilsTest.php (4 tests)
-    ├── 🧪 testStringLength
-    ├── 🧪 testStringUppercase
-    ├── 🧪 testStringLowercase
-    └── 🧪 testStringReverse
-```
-
-# PHP Test Collections Explorer
-
-Une extension VS Code pour explorer, organiser et exécuter vos tests PHP avec support Docker complet.
-
-![Version](https://img.shields.io/badge/version-0.0.1-blue)
+![Version](https://img.shields.io/badge/version-0.1.0-blue)
 ![VS Code](https://img.shields.io/badge/VS%20Code-1.105.0+-green)
 ![PHP](https://img.shields.io/badge/PHP-PHPUnit-purple)
 ![Docker](https://img.shields.io/badge/Docker-Supported-blue)
 
-## ✨ Fonctionnalités
+## ✨ Features
 
-- 📁 **Organisation par collections** - Groupez vos tests par dossier (Unit, Feature, Integration...)
-- 🎯 **Exécution granulaire** - Tests individuels, par fichier ou collection complète
-- 🐳 **Support Docker natif** - Exécution transparente dans les conteneurs
-- 📊 **Statuts visuels** - Icônes pour les tests réussis/échoués/en cours
-- 🔍 **Détails d'erreur** - Visualisation complète des échecs et erreurs PHP
-- ⚡ **Cache intelligent** - Scan optimisé avec mise à jour automatique
-- 📋 **Logging complet** - Toutes les commandes dans un onglet Output dédié
+- 📁 **Collection Organization** - Group your tests by folders (Unit, Feature, Integration...)
+- 🎯 **Granular Execution** - Run individual tests, entire files, or complete collections
+- 🐳 **Native Docker Support** - Seamless execution in containers with automatic command transformation
+- 📊 **Visual Status** - Icons for passed/failed/running tests with detailed error information
+- 🔍 **Error Details** - Complete visualization of PHP failures and errors
+- ⚡ **Smart Cache** - Optimized scanning with automatic updates
+- 📋 **Complete Logging** - All commands tracked in dedicated Output tab
+- �️ **Terminal Management** - Intelligent terminal reuse and cleanup
 
-## 🚀 Installation rapide
+## 🚀 Quick Start
 
-1. **Télécharger** : `tests-vs-extension-0.0.1.vsix`
-2. **VS Code** : `Ctrl+Shift+P` → `Extensions: Install from VSIX...`
-3. **Ouvrir** un projet PHP avec tests
-4. **Vue "PHP Test Collections"** apparaît automatiquement
+1. **Install**: Download `php-test-collections-explorer-0.1.0.vsix`
+2. **VS Code**: `Ctrl+Shift+P` → `Extensions: Install from VSIX...`
+3. **Open** a PHP project with tests
+4. **View**: "PHP Test Collections" appears automatically in the Test tab
 
-## 🎮 Utilisation
+## Install by script
+ 
+```
+#Run in your terminal
+chmod +x install.sh
+./install.sh
+```
 
-### Vue d'arbre intuitive
+## 🎮 Usage
+
+### Intuitive Tree View
 ```
 🐳 Docker Integration Tests (5 files)
 ├── ✅ AuthTest.php (3 tests)
@@ -108,12 +44,12 @@ Une extension VS Code pour explorer, organiser et exécuter vos tests PHP avec s
 │   └── ⚪ testLogout
 └── ✅ DatabaseTest.php (2 tests)
 
-Unit Tests (8 files)
+📚 Unit Tests (8 files)
 ├── ✅ UserTest.php (4 tests)
 └── ...
 ```
 
-### Configuration simple
+### Simple Configuration
 ```json
 {
   "phpTestCollections.collections": [
@@ -124,43 +60,43 @@ Unit Tests (8 files)
       "useDocker": false
     },
     {
-      "name": "Integration Docker",
+      "name": "Docker Integration",
       "path": "tests/Integration",
       "command": "vendor/bin/phpunit tests/Integration", 
       "useDocker": true,
-      "dockerImage": "mon-app"
+      "dockerImage": "my-app"
     }
   ]
 }
 ```
 
-### Types d'exécution
+### Execution Types
 
-| Action | Résultat | Commande générée |
-|--------|----------|------------------|
-| ▶️ Test individuel | `testLogin` seulement | `--filter "UserTest::testLogin"` |
-| ▶️ Fichier complet | Tous tests du fichier | `--filter "UserTest"` |  
-| ▶️ Collection | Toute la suite | Commande complète |
+| Action | Result | Generated Command |
+|--------|--------|-------------------|
+| ▶️ Individual test | `testLogin` only | `--filter "UserTest::testLogin"` |
+| ▶️ Complete file | All tests in file | `--filter "UserTest"` |  
+| ▶️ Collection | Entire test suite | Full command |
 
-## 🐳 Support Docker
+## 🐳 Docker Support
 
-Transformation automatique des commandes :
-- **Local** : `vendor/bin/phpunit --filter "UserTest" tests/Unit/UserTest.php`
-- **Docker** : `docker exec mon-app vendor/bin/phpunit --filter "UserTest" tests/Unit/UserTest.php`
+Automatic command transformation:
+- **Local**: `vendor/bin/phpunit --filter "UserTest" tests/Unit/UserTest.php`
+- **Docker**: `docker exec my-app vendor/bin/phpunit --filter "UserTest" tests/Unit/UserTest.php`
 
-## 📊 Statuts des tests
+## 📊 Test Status
 
-| Icône | Statut | Description |
-|-------|--------|-------------|
-| ✅ | Réussi | Test passé |
-| ❌ | Échec | Assertion échouée |
-| 💥 | Erreur | Erreur PHP |
-| 🔄 | En cours | Exécution |
-| ⚪ | Inconnu | Non testé |
+| Icon | Status | Description |
+|------|--------|-------------|
+| ✅ | Passed | Test successful |
+| ❌ | Failed | Assertion failed |
+| 💥 | Error | PHP error |
+| 🔄 | Running | Executing |
+| ⚪ | Unknown | Not tested |
 
-## 🔧 Configuration avancée
+## 🔧 Advanced Configuration
 
-### Projet Laravel
+### Laravel Project
 ```json
 {
   "phpTestCollections.collections": [
@@ -185,129 +121,11 @@ Transformation automatique des commandes :
   "path": "tests",
   "command": "vendor/bin/phpunit",
   "useDocker": true,
-  "dockerImage": "mon-projet_app"
+  "dockerImage": "my-project_app"
 }
 ```
 
-## 📋 Logs et débogage
-
-- **Onglet Output** : "PHP Test Collections"  
-- **Commandes tracées** avec timestamps
-- **Erreurs Docker** détaillées
-- **Force refresh** : Bouton 🔄
-
-## 🛠️ Développement
-
-```bash
-# Cloner le repo
-git clone [votre-repo]
-cd Tests-vs-ext
-
-# Installer les dépendances
-npm install
-
-# Compiler
-npm run compile
-
-# Lancer en mode dev
-F5 (Extension Development Host)
-
-# Créer le package
-vsce package
-```
-
-## 📚 Documentation
-
-- [Guide d'utilisation complet](./GUIDE-UTILISATION.md)
-- [Configuration Docker](./GUIDE-UTILISATION.md#-support-docker)
-- [Dépannage](./GUIDE-UTILISATION.md#-dépannage)
-
-## 🎯 Cas d'usage
-
-✅ **Développeur PHP** travaillant avec PHPUnit  
-✅ **Projets Laravel/Symfony** avec tests organisés  
-✅ **Environnements Docker** pour l'intégration  
-✅ **Tests E2E** avec configurations complexes  
-✅ **Équipes** ayant besoin de cohérence dans l'exécution des tests  
-
-## 📞 Support
-
-- 📋 **Logs** : Output → "PHP Test Collections"
-- 🔍 **Débogage** : Consulter le guide d'utilisation
-- 🐛 **Issues** : [Créer une issue](../../issues)
-
----
-
-🚀 **Transformez votre workflow de test PHP avec une interface visuelle puissante !**
-
-## Prérequis
-
-- VS Code version ^1.105.0
-- Node.js et npm pour le développement
-
-## Développement
-
-### Installation des dépendances
-```bash
-npm install
-```
-
-### Compilation
-```bash
-npm run compile
-```
-
-### Tests
-```bash
-npm test
-```
-
-## Configuration
-
-### Structure de collection
-```json
-{
-  "name": "Unit Tests",
-  "path": "tests/Unit",
-  "command": "vendor/bin/phpunit tests/Unit",
-  "pattern": "**/*Test.php"
-}
-```
-
-### Paramètres disponibles
-- `phpTestCollections.collections` : Array des collections configurées
-
-## Utilisation
-
-1. **Installation** : L'extension s'active automatiquement dans les projets PHP
-2. **PHP Test Collections** : Nouvelle section dans l'explorateur VS Code
-3. **Navigation** : 
-   - Cliquez sur une collection pour voir ses tests
-   - Cliquez sur un fichier pour l'ouvrir
-   - Utilisez l'icône ▶️ pour exécuter une collection
-4. **Ajout de collections** : Bouton ➕ pour ajouter rapidement une nouvelle collection
-
-## Exemples d'usage
-
-### Projet Laravel
-```json
-{
-  "phpTestCollections.collections": [
-    {
-      "name": "Unit Tests",
-      "path": "tests/Unit",
-      "command": "php artisan test --testsuite=Unit"
-    },
-    {
-      "name": "Feature Tests", 
-      "path": "tests/Feature",
-      "command": "php artisan test --testsuite=Feature"
-    }
-  ]
-}
-```
-
-### Projet Symfony
+### Symfony Project
 ```json
 {
   "phpTestCollections.collections": [
@@ -325,50 +143,78 @@ npm test
 }
 ```
 
-### Lancement en mode développement
-1. Ouvrez le projet dans VS Code
-2. Appuyez sur `F5` pour lancer l'extension en mode debug
-3. Dans la nouvelle fenêtre, "PHP Test Collections" apparaît dans l'explorateur
+## 📋 Logs and Debugging
 
-## Known Issues
+- **Output Tab**: "PHP Test Collections"  
+- **Traced Commands** with timestamps
+- **Detailed Docker errors**
+- **Force refresh**: 🔄 Button
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+## 🛠️ Development
 
-## Release Notes
+```bash
+# Clone the repo
+git clone [your-repo]
+cd Tests-vs-ext
 
-Users appreciate release notes as you update your extension.
+# Install dependencies
+npm install
 
-### 1.0.0
+# Compile
+npm run compile
 
-Initial release of ...
+# Launch dev mode
+F5 (Extension Development Host)
 
-### 1.0.1
+# Create package
+vsce package
 
-Fixed issue #.
+#Generate your own package
+npx @vscode/vsce package
+```
 
-### 1.1.0
+## 🎯 Use Cases
 
-Added features X, Y, and Z.
+✅ **PHP Developers** working with PHPUnit  
+✅ **Laravel/Symfony projects** with organized tests  
+✅ **Docker environments** for integration  
+✅ **E2E testing** with complex configurations  
+✅ **Teams** needing consistency in test execution  
+
+## 📞 Support
+
+- 📋 **Logs**: Output → "PHP Test Collections"
+- 🔍 **Debugging**: Check the usage guide
+- 🐛 **Issues**: [Create an issue](../../issues)
+
+## 🏗️ Architecture
+
+### Modular Design (6 Services)
+- 📁 **types/**: Centralized TypeScript interfaces
+- 📝 **LoggingService**: Premium logging system (113 lines)
+- 💾 **CacheService**: JSON cache management (228 lines)
+- 🚀 **TestRunner**: PHPUnit execution engine (492 lines)
+- 🔍 **TestParser**: PHP parsing with dual detection (190 lines)
+- 👁️ **FileWatcher**: Real-time file monitoring (202 lines)
+
+### Performance Metrics
+- **Code Reduction**: 68% (1877 → 595 lines in main file)
+- **Bundle Size**: 85.3 KiB (optimized)
+- **Cache System**: Workspace-specific JSON persistence
+- **Compilation**: Zero TypeScript errors
+
+## 📚 Documentation
+
+- [Complete Usage Guide](./GUIDE-UTILISATION.md)
+- [Docker Configuration](./GUIDE-UTILISATION.md#-support-docker)
+- [Troubleshooting](./GUIDE-UTILISATION.md#-troubleshooting)
+
+## 🔗 Requirements
+
+- VS Code ^1.105.0
+- PHP project with PHPUnit tests
+- Optional: Docker for containerized execution
 
 ---
 
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+🚀 **Transform your PHP testing workflow with a powerful visual interface!**

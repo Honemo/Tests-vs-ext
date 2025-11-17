@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { exec } from 'child_process';
 
-// Import des types depuis le module dédié
+// Import types from dedicated module
 import {
     TestCollection,
     TestMethod,
@@ -13,7 +13,7 @@ import {
     JsonCacheData
 } from './types';
 
-// Import des services
+// Import services
 import { LoggingService } from './services/LoggingService';
 import { CacheService } from './services/CacheService';
 import { TestRunner } from './services/TestRunner';
@@ -33,18 +33,18 @@ export class TestItem extends vscode.TreeItem {
         super(label, collapsibleState);
         
         if (testType === 'collection') {
-            // Icône pour les collections
+            // Icon for collections
             this.iconPath = new vscode.ThemeIcon('folder');
             this.contextValue = 'testCollection';
             this.command = undefined;
         } else if (testType === 'file') {
-            // Icône pour les fichiers de test
+            // Icon for test files
             this.iconPath = new vscode.ThemeIcon('file');
             this.contextValue = 'testFile';
             this.tooltip = resourceUri?.fsPath;
             this.resourceUri = resourceUri;
         } else if (testType === 'method' && testMethod) {
-            // Icône basée sur le statut du test
+            // Icon based on test status
             if (testMethod.status === TestStatus.Passed) {
                 this.iconPath = new vscode.ThemeIcon('check', new vscode.ThemeColor('testing.iconPassed'));
             } else if (testMethod.status === TestStatus.Failed) {
@@ -57,11 +57,10 @@ export class TestItem extends vscode.TreeItem {
                 this.iconPath = new vscode.ThemeIcon('circle-outline');
             }
             
-            // Contexte pour les méthodes de test
+            // Context for test methods
             this.contextValue = 'testMethod';
             this.tooltip = `${testMethod.className}::${testMethod.name}`;
         }
-		
     }
 }
 
@@ -81,21 +80,21 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
     constructor(context: vscode.ExtensionContext) {
         this.context = context;
         
-        // Initialiser les services
+        // Initialize services
         this.logger = new LoggingService();
         this.cacheService = new CacheService(this.context, this.logger);
         this.testRunner = new TestRunner(this.logger);
         this.testParser = new TestParser(this.logger);
         this.fileWatcher = new FileWatcher(this.logger);
-        this.logger.log('🚀 Extension PHP Test Collections initialisée');
+        this.logger.log('🚀 PHP Test Collections extension initialized');
         
-        // Charger le cache depuis le service
+        // Load cache from service
         const loadedCache = this.cacheService.loadCache();
         for (const [key, value] of loadedCache) {
             this.cachedCollections.set(key, value);
         }
         
-        // Configurer toutes les surveillances via FileWatcher
+        // Configure all watches via FileWatcher
         this.fileWatcher.watchAll({
             onFileChange: () => this.refresh(),
             onWorkspaceChange: () => {
@@ -123,28 +122,28 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
     }
 
     async forceRefresh(): Promise<void> {
-        // Vider le cache en mémoire
+        // Clear in-memory cache
         this.cachedCollections.clear();
         
-        // Utiliser le service de cache pour forcer le rafraîchissement
+        // Use cache service to force refresh
         this.cacheService.forceRefresh();
         
-        // Recharger tout
+        // Reload everything
         await this.loadCollections();
         this.refresh();
         
-        vscode.window.showInformationMessage('Cache des tests rafraîchi !');
+        vscode.window.showInformationMessage('Test cache refreshed!');
     }
 
     private shouldRefreshCache(collection: TestCollection): boolean {
         const cached = this.cachedCollections.get(collection.name);
         if (!cached) return true;
         
-        // Vérifier si les fichiers ont changé depuis le dernier scan
+        // Check if files have changed since last scan
         const hasFileChanges = this.hasFileSystemChanges(collection, cached);
         if (hasFileChanges) return true;
         
-        // Rafraîchir si plus de 30 minutes se sont écoulées (plus long avec le cache JSON)
+        // Refresh if more than 30 minutes have elapsed (longer with JSON cache)
         const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
         return cached.lastScan < thirtyMinutesAgo;
     }
@@ -153,25 +152,25 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
         if (!vscode.workspace.workspaceFolders) return false;
         
         try {
-            // Vérifier rapidement si le nombre de fichiers a changé
+            // Quickly check if file count has changed
             const pattern = collection.pattern || '**/*Test.php';
             for (const workspaceFolder of vscode.workspace.workspaceFolders) {
                 const collectionPath = path.join(workspaceFolder.uri.fsPath, collection.path);
                 
-                // Vérifier si le dossier existe toujours
+                // Check if folder still exists
                 if (!fs.existsSync(collectionPath)) {
                     return true;
                 }
                 
-                // Compter les fichiers PHP rapidement
+                // Count PHP files quickly
                 const phpFiles = this.getPhpTestFiles(collectionPath, pattern);
                 if (phpFiles.length !== cached.files.length) {
                     return true;
                 }
             }
         } catch (error) {
-            this.logger.logError('Erreur lors de la vérification des changements de fichiers', error instanceof Error ? error : new Error(String(error)));
-            return true; // En cas d'erreur, forcer le rafraîchissement
+            this.logger.logError('Error checking file changes', error instanceof Error ? error : new Error(String(error)));
+            return true; // Force refresh on error
         }
         
         return false;
@@ -179,7 +178,7 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
 
     private getPhpTestFiles(dirPath: string, pattern: string): vscode.Uri[] {
         try {
-			this.logger.logInfo(`📁 Récupération des fichiers PHP dans: ${dirPath} avec le pattern: ${pattern}`);
+            this.logger.logInfo(`📁 Getting PHP files in: ${dirPath} with pattern: ${pattern}`);
             const files: vscode.Uri[] = [];
             
             if (fs.existsSync(dirPath)) {
@@ -190,10 +189,10 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
                     const stat = fs.statSync(itemPath);
                     
                     if (stat.isDirectory()) {
-                        // Récursion dans les sous-dossiers
+                        // Recursion in subdirectories
                         files.push(...this.getPhpTestFiles(itemPath, pattern));
                     } else if (stat.isFile() && item.endsWith('.php')) {
-                        // Vérifier si le fichier correspond au pattern
+                        // Check if file matches pattern
                         if (this.matchesPattern(item, pattern)) {
                             files.push(vscode.Uri.file(itemPath));
                         }
@@ -203,13 +202,13 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
             
             return files;
         } catch (error) {
-            this.logger.logError('Erreur lors de la lecture des fichiers PHP', error instanceof Error ? error : new Error(String(error)));
+            this.logger.logError('Error reading PHP files', error instanceof Error ? error : new Error(String(error)));
             return [];
         }
     }
 
     private matchesPattern(filename: string, pattern: string): boolean {
-        // Conversion simple de pattern glob vers regex
+        // Simple conversion from glob pattern to regex
         const regex = new RegExp(
             pattern
                 .replace(/\*\*/g, '.*')  // ** -> .*
@@ -221,9 +220,9 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
     }
 
     updateTestStatus(collectionName: string, className: string, methodName: string, status: TestStatus, errorMessage?: string, failureDetails?: string): void {
-        this.logger.logInfo(`🔄 Mise à jour du statut du test: ${collectionName} :: ${className} :: ${methodName} => ${status}`);
-		this.logger.logDebug(`Caca`);
-		const cached = this.cachedCollections.get(collectionName);
+        this.logger.logInfo(`🔄 Updating test status: ${collectionName} :: ${className} :: ${methodName} => ${status}`);
+        this.logger.logDebug(`Debug info`);
+        const cached = this.cachedCollections.get(collectionName);
         if (!cached) return;
 
         const method = cached.methods.find(m => 
@@ -236,7 +235,7 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
             method.lastRun = new Date();
             method.errorMessage = errorMessage;
             
-            // Mettre à jour le cache et sauvegarder
+            // Update cache and save
             this.cacheService.saveCache(this.cachedCollections);
             this.refresh();
         }
@@ -248,7 +247,7 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
 
     async getChildren(element?: TestItem): Promise<TestItem[]> {
         if (!element) {
-            // Racine : retourner les collections
+            // Root: return collections
             await this.loadCollections();
             return this.collections.map(collection => new TestItem(
                 collection.name,
@@ -258,10 +257,10 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
                 collection
             ));
         } else if (element.testType === 'collection' && element.collection) {
-            // Collection : retourner les fichiers de test
+            // Collection: return test files
             return await this.getCollectionFiles(element.collection);
         } else if (element.testType === 'file' && element.collection && element.resourceUri) {
-            // Fichier : retourner les méthodes de test
+            // File: return test methods
             return await this.getFileMethods(element.collection, element.resourceUri);
         }
         
@@ -272,25 +271,25 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
         const config = vscode.workspace.getConfiguration('phpTestCollections');
         this.collections = config.get<TestCollection[]>('collections', []);
         
-        this.logger.logInfo(`🔍 Chargement de ${this.collections.length} collections configurées`);
+        this.logger.logInfo(`🔍 Loading ${this.collections.length} configured collections`);
         for (const collection of this.collections) {
             this.logger.logInfo(`📂 Collection: ${collection.name} (path: ${collection.path})`);
         }
         
-        // Charger automatiquement les méthodes pour chaque collection
+        // Automatically load methods for each collection
         for (const collection of this.collections) {
             await this.loadCollectionMethods(collection);
         }
         
-        this.logger.logInfo(`✅ Collections chargées. Cache contient: ${this.cachedCollections.size} collections`);
+        this.logger.logInfo(`✅ Collections loaded. Cache contains: ${this.cachedCollections.size} collections`);
     }
 
     private async getCollectionFiles(collection: TestCollection): Promise<TestItem[]> {
-		this.logger.logInfo(`📁 Récupération des fichiers pour la collection: ${collection.name}`);
+        this.logger.logInfo(`📁 Getting files for collection: ${collection.name}`);
         const cached = this.cachedCollections.get(collection.name);
         if (!cached) return [];
 
-        // Regrouper les méthodes par fichier
+        // Group methods by file
         const fileGroups = new Map<string, TestMethod[]>();
         for (const method of cached.methods) {
             const filePath = method.filePath;
@@ -300,7 +299,7 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
             fileGroups.get(filePath)!.push(method);
         }
 
-        // Créer les items de fichier
+        // Create file items
         const fileItems: TestItem[] = [];
         for (const [filePath, methods] of fileGroups) {
             const fileName = path.basename(filePath);
@@ -322,7 +321,7 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
         const cached = this.cachedCollections.get(collection.name);
         if (!cached) return [];
 
-        // Filtrer les méthodes pour ce fichier
+        // Filter methods for this file
         const fileMethods = cached.methods.filter(method => method.filePath === fileUri.fsPath);
         
         return fileMethods.map(method => new TestItem(
@@ -336,17 +335,17 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
     }
 
     private async loadCollectionMethods(collection: TestCollection): Promise<void> {
-        // Vérifier d'abord le cache
+        // Check cache first
         if (!this.shouldRefreshCache(collection)) {
-            this.logger.logInfo(`💾 Utilisation du cache pour: ${collection.name}`);
-            return; // Utiliser le cache existant
+            this.logger.logInfo(`💾 Using cache for: ${collection.name}`);
+            return; // Use existing cache
         }
 
-        this.logger.logInfo(`🔄 Chargement de la collection: ${collection.name}`);
+        this.logger.logInfo(`🔄 Loading collection: ${collection.name}`);
         
         try {
             if (!vscode.workspace.workspaceFolders) {
-                this.logger.logWarning(`⚠️ Aucun workspace folder trouvé`);
+                this.logger.logWarning(`⚠️ No workspace folder found`);
                 return;
             }
 
@@ -356,25 +355,25 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
 
             for (const workspaceFolder of vscode.workspace.workspaceFolders) {
                 const collectionPath = path.join(workspaceFolder.uri.fsPath, collection.path);
-				this.logger.logInfo(`📁 Récupération des fichiers pour la collection: ${collection.name}`);
-                this.logger.logInfo(`📂 Scan du répertoire: ${collectionPath}`);
+                this.logger.logInfo(`📁 Getting files for collection: ${collection.name}`);
+                this.logger.logInfo(`📂 Scanning directory: ${collectionPath}`);
                 
                 if (fs.existsSync(collectionPath)) {
                     const pattern = collection.pattern || '**/*Test.php';
-                    this.logger.logInfo(`🔍 Pattern de recherche: ${pattern}`);
+                    this.logger.logInfo(`🔍 Search pattern: ${pattern}`);
                     const phpFiles = this.getPhpTestFiles(collectionPath, pattern);
-                    this.logger.logInfo(`📄 ${phpFiles.length} fichiers PHP trouvés`);
+                    this.logger.logInfo(`📄 ${phpFiles.length} PHP files found`);
                     files.push(...phpFiles);
 
-                    // Parser chaque fichier PHP pour extraire les méthodes de test
+                    // Parse each PHP file to extract test methods
                     for (const fileUri of phpFiles) {
                         const fileMethods = await this.testParser.parsePhpTestFile(fileUri.fsPath, collection);
                         methods.push(...fileMethods);
                         
-                        // Créer un TestFile
+                        // Create a TestFile
                         const testFile: TestFile = {
                             filePath: fileUri.fsPath,
-                            className: 'Unknown', // Sera extrait pendant le parsing
+                            className: 'Unknown', // Will be extracted during parsing
                             collection: collection,
                             totalTests: fileMethods.length,
                             passedTests: 0,
@@ -388,7 +387,7 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
                 }
             }
 
-            // Mettre en cache
+            // Cache it
             this.cachedCollections.set(collection.name, {
                 collection,
                 files,
@@ -397,19 +396,19 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
                 lastScan: new Date()
             });
 
-            // Sauvegarder le cache
+            // Save cache
             this.cacheService.saveCache(this.cachedCollections);
             
-            this.logger.logSuccess(`Collection "${collection.name}" chargée: ${methods.length} méthodes dans ${files.length} fichiers`);
+            this.logger.logSuccess(`Collection "${collection.name}" loaded: ${methods.length} methods in ${files.length} files`);
         } catch (error) {
-            this.logger.logError(`Erreur lors du chargement de la collection "${collection.name}"`, error instanceof Error ? error : new Error(String(error)));
+            this.logger.logError(`Error loading collection "${collection.name}"`, error instanceof Error ? error : new Error(String(error)));
         }
     }
 
     private createTestFiles(files: vscode.Uri[], methods: TestMethod[], collection: TestCollection): TestFile[] {
         const testFiles: TestFile[] = [];
         
-        // Regrouper les méthodes par fichier
+        // Group methods by file
         const methodsByFile = new Map<string, TestMethod[]>();
         for (const method of methods) {
             if (!methodsByFile.has(method.filePath)) {
@@ -418,7 +417,7 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
             methodsByFile.get(method.filePath)!.push(method);
         }
         
-        // Créer les TestFiles
+        // Create TestFiles
         for (const fileUri of files) {
             const fileMethods = methodsByFile.get(fileUri.fsPath) || [];
             testFiles.push({
@@ -437,27 +436,27 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
         return testFiles;
     }
 
-    // Méthodes déléguées au TestRunner
+    // Methods delegated to TestRunner
     async runTestCollection(collection: TestCollection): Promise<void> {
         await this.testRunner.runTestCollection(collection);
     }
 
     async runSingleTest(testMethod: TestMethod): Promise<void> {
         await this.testRunner.runTestMethod(testMethod, (testMethod) => {
-			// Callback pour mettre à jour le statut du test
-			this.updateTestStatus(
-				testMethod.collection.name,
-				testMethod.className,
-				testMethod.name,
-				testMethod.status || TestStatus.Unknown,
-				testMethod.errorMessage
-			);
-		});
+            // Callback to update test status
+            this.updateTestStatus(
+                testMethod.collection.name,
+                testMethod.className,
+                testMethod.name,
+                testMethod.status || TestStatus.Unknown,
+                testMethod.errorMessage
+            );
+        });
     }
 
     async runTestFile(fileUri: vscode.Uri, collection: TestCollection): Promise<void> {
         await this.testRunner.runTestFile(fileUri, collection, this.cachedCollections, (testMethod) => {
-            // Callback pour mettre à jour le statut du test
+            // Callback to update test status
             this.updateTestStatus(
                 testMethod.collection.name,
                 testMethod.className,
@@ -470,7 +469,7 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
 
     async setTestStatusManually(testMethod: TestMethod): Promise<void> {
         await this.testRunner.setTestStatusManually(testMethod);
-        // Mettre à jour le cache après modification manuelle
+        // Update cache after manual modification
         this.cacheService.saveCache(this.cachedCollections);
         this.refresh();
     }
@@ -480,7 +479,7 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
             const document = await vscode.workspace.openTextDocument(uri);
             await vscode.window.showTextDocument(document);
         } catch (error) {
-            vscode.window.showErrorMessage(`Impossible d'ouvrir le fichier: ${error}`);
+            vscode.window.showErrorMessage(`Unable to open file: ${error}`);
         }
     }
 
@@ -494,35 +493,35 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
         );
 
         if (method) {
-            method.status = TestStatus.Unknown; // Statut "en cours"
+            method.status = TestStatus.Unknown; // "Running" status
             this.refresh();
         }
     }
 
-    // Méthodes utilitaires conservées
+    // Preserved utility methods
     private buildDockerCommand(collection: TestCollection, command: string, workspacePath: string): string {
         if (!collection.useDocker || !collection.dockerImage) {
             return command;
         }
 
-        // Construire la commande Docker
+        // Build Docker command
         const dockerCommand = `docker exec ${collection.dockerImage} ${command}`;
         
-        this.logger.log(`🐳 Transformation Docker pour la collection "${collection.name}"`);
-        this.logger.log(`   Commande originale: ${command}`);
-        this.logger.log(`   Commande Docker:    ${dockerCommand}`);
+        this.logger.log(`🐳 Docker transformation for collection "${collection.name}"`);
+        this.logger.log(`   Original command: ${command}`);
+        this.logger.log(`   Docker command:   ${dockerCommand}`);
         this.logger.log('');
         
         return dockerCommand;
     }
 
-    // Méthodes pour les actions VS Code (restent dans le provider)
+    // Methods for VS Code actions (remain in provider)
     async showTestErrorDetails(testMethod: TestMethod): Promise<void> {
         if (testMethod.errorMessage) {
-            const message = `Détails de l'erreur pour ${testMethod.className}::${testMethod.name}:\n\n${testMethod.errorMessage}`;
+            const message = `Error details for ${testMethod.className}::${testMethod.name}:\n\n${testMethod.errorMessage}`;
             await vscode.window.showInformationMessage(message, { modal: true });
         } else {
-            await vscode.window.showInformationMessage(`Aucune erreur enregistrée pour ${testMethod.className}::${testMethod.name}`);
+            await vscode.window.showInformationMessage(`No error recorded for ${testMethod.className}::${testMethod.name}`);
         }
     }
 
@@ -530,70 +529,70 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
         this.logger.show();
     }
 
-    // Méthodes pour les commandes VS Code
+    // Methods for VS Code commands
     async configureTestFolders(): Promise<void> {
         if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
-            vscode.window.showErrorMessage('Aucun workspace ouvert');
+            vscode.window.showErrorMessage('No workspace opened');
             return;
         }
 
         const workspaceFolder = vscode.workspace.workspaceFolders[0];
         const settingsPath = path.join(workspaceFolder.uri.fsPath, '.vscode', 'settings.json');
 
-        vscode.window.showInformationMessage('Configuration des dossiers de test...');
+        vscode.window.showInformationMessage('Configuring test folders...');
 
         try {
-            await vscode.commands.executeCommand('workbench.action.openSettings', '@ext:php-test-collections');
+            await vscode.commands.executeCommand('workbench.action.openSettings', 'phpTestCollections.collections');
         } catch (error) {
-            this.logger.logError('Erreur lors de l\'ouverture des paramètres', error instanceof Error ? error : new Error(String(error)));
+            this.logger.logError('Error opening settings', error instanceof Error ? error : new Error(String(error)));
         }
     }
 
     async addTestCollection(): Promise<void> {
         if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
-            vscode.window.showErrorMessage('Aucun workspace ouvert');
+            vscode.window.showErrorMessage('No workspace opened');
             return;
         }
 
         const name = await vscode.window.showInputBox({
-            prompt: 'Nom de la collection de tests',
+            prompt: 'Test collection name',
             placeHolder: 'Ex: Unit Tests'
         });
 
         if (!name) return;
 
         const path = await vscode.window.showInputBox({
-            prompt: 'Chemin vers le dossier des tests',
+            prompt: 'Path to test folder',
             placeHolder: 'Ex: tests/Unit'
         });
 
         if (!path) return;
 
         const command = await vscode.window.showInputBox({
-            prompt: 'Commande d\'exécution',
+            prompt: 'Execution command',
             placeHolder: 'Ex: vendor/bin/phpunit tests/Unit'
         });
 
         if (!command) return;
 
         const dockerChoice = await vscode.window.showQuickPick(
-            ['Non', 'Oui'],
-            { placeHolder: 'Utiliser Docker ?' }
+            ['No', 'Yes'],
+            { placeHolder: 'Use Docker?' }
         );
 
         let useDocker = false;
         let dockerImage = '';
 
-        if (dockerChoice === 'Oui') {
+        if (dockerChoice === 'Yes') {
             useDocker = true;
             const image = await vscode.window.showInputBox({
-                prompt: 'Nom de l\'image Docker',
+                prompt: 'Docker image name',
                 placeHolder: 'Ex: my-php-container'
             });
             dockerImage = image || '';
         }
 
-        // Créer la nouvelle collection
+        // Create new collection
         const newCollection: TestCollection = {
             name,
             path,
@@ -602,26 +601,26 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
             dockerImage: useDocker ? dockerImage : undefined
         };
 
-        // Ajouter à la configuration
+        // Add to configuration
         const config = vscode.workspace.getConfiguration('phpTestCollections');
         const collections = config.get<TestCollection[]>('collections', []);
         collections.push(newCollection);
         
         try {
             await config.update('collections', collections, vscode.ConfigurationTarget.Workspace);
-            vscode.window.showInformationMessage(`Collection "${name}" ajoutée !`);
+            vscode.window.showInformationMessage(`Collection "${name}" added!`);
             await this.loadCollections();
             this.refresh();
         } catch (error) {
-            this.logger.logError('Erreur lors de l\'ajout de la collection', error instanceof Error ? error : new Error(String(error)));
-            vscode.window.showErrorMessage('Impossible d\'ajouter la collection');
+            this.logger.logError('Error adding collection', error instanceof Error ? error : new Error(String(error)));
+            vscode.window.showErrorMessage('Unable to add collection');
         }
     }
 
     dispose(): void {
         this.fileWatcher.dispose();
         this.testRunner.dispose();
-        // TestParser et CacheService n'ont pas de ressources à nettoyer
+        // TestParser and CacheService don't have resources to clean up
         this.logger.dispose();
     }
 }

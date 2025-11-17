@@ -25,13 +25,13 @@ export class TestRunner {
     async runTestCollection(collection: TestCollection): Promise<void> {
         try {
             if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
-                vscode.window.showErrorMessage('Aucun workspace ouvert');
+                vscode.window.showErrorMessage('No workspace opened');
                 return;
             }
 
             const workspaceFolder = vscode.workspace.workspaceFolders[0];
             
-            // Construire la commande avec Docker si nécessaire
+            // Build command with Docker if needed
             const finalCommand = this.buildDockerCommand(collection, collection.command, workspaceFolder.uri.fsPath);
             
             // Logger la commande

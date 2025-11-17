@@ -1,40 +1,60 @@
 #!/bin/bash
-# Script d'installation automatique de l'extension PHP Test Collections Explorer
+# Automatic installation script for PHP Test Collections Explorer extension
 
-echo "🚀 Installation de l'extension PHP Test Collections Explorer..."
+echo "🚀 Installing PHP Test Collections Explorer extension..."
 
-# Vérifier que VS Code est installé
+# Check if VS Code is installed
 if ! command -v code &> /dev/null; then
-    echo "❌ VS Code n'est pas installé ou la commande 'code' n'est pas disponible"
-    echo "   Veuillez installer VS Code et vous assurer que la commande 'code' fonctionne"
+    echo "❌ VS Code is not installed or 'code' command is not available"
+    echo "   Please install VS Code and ensure the 'code' command works"
     exit 1
 fi
 
-# Vérifier que le fichier VSIX existe
-VSIX_FILE="tests-vs-extension-0.0.1.vsix"
-if [ ! -f "$VSIX_FILE" ]; then
-    echo "❌ Fichier $VSIX_FILE introuvable"
-    echo "   Veuillez vous assurer d'être dans le bon dossier"
+# Automatically detect the most recent VSIX file
+echo "🔍 Searching for VSIX file..."
+VSIX_FILE=$(find . -maxdepth 1 -name "tests-vs-extension-*.vsix" -type f | sort -V | tail -n 1)
+
+if [ -z "$VSIX_FILE" ]; then
+    echo "❌ No VSIX file found"
+    echo "   Please ensure a tests-vs-extension-*.vsix file exists in this directory"
+    echo "   Generate it with: npm run package"
     exit 1
 fi
 
-# Installer l'extension
-echo "📦 Installation de l'extension..."
+# Extract version from filename
+VERSION=$(basename "$VSIX_FILE" .vsix | sed 's/tests-vs-extension-//')
+echo "📦 File detected: $VSIX_FILE (version $VERSION)"
+
+# Check if extension is already installed
+INSTALLED_VERSION=$(code --list-extensions --show-versions | grep "tests-vs-extension" | cut -d'@' -f2)
+if [ ! -z "$INSTALLED_VERSION" ]; then
+    echo "ℹ️  Extension already installed (version $INSTALLED_VERSION)"
+    echo "🔄 Updating to version $VERSION..."
+    # Uninstall old version
+    code --uninstall-extension tests-vs-extension > /dev/null 2>&1
+fi
+
+# Install the extension
+echo "📦 Installing extension version $VERSION..."
 if code --install-extension "$VSIX_FILE"; then
-    echo "✅ Extension installée avec succès !"
+    echo "✅ Extension installed successfully!"
     echo ""
-    echo "🎯 Prochaines étapes :"
-    echo "1. Ouvrir VS Code dans un projet PHP avec des tests"
-    echo "2. La vue 'PHP Test Collections' apparaîtra automatiquement"
-    echo "3. Configurer vos collections de tests si nécessaire"
+    echo "🎯 Next steps:"
+    echo "1. Open VS Code in a PHP project with tests"
+    echo "2. The 'PHP Test Collections' view will appear in the Test tab"
+    echo "3. Configure your test collections if needed"
     echo ""
-    echo "📚 Pour plus d'aide, consultez GUIDE-UTILISATION.md"
+    echo "📚 For more help, check README.md"
+    echo "🔧 Available commands:"
+    echo "   - Refresh Tests"
+    echo "   - Add Test Collection"
+    echo "   - Configure Test Collections"
 else
-    echo "❌ Erreur lors de l'installation"
-    echo "   Essayez l'installation manuelle :"
-    echo "   1. Ouvrir VS Code"
+    echo "❌ Installation error"
+    echo "   Try manual installation:"
+    echo "   1. Open VS Code"
     echo "   2. Ctrl+Shift+P"
     echo "   3. 'Extensions: Install from VSIX...'"
-    echo "   4. Sélectionner $VSIX_FILE"
+    echo "   4. Select $VSIX_FILE"
     exit 1
 fi

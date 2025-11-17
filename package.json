@@ -1,14 +1,32 @@
 {
   "name": "tests-vs-extension",
-  "displayName": "Tests Explorer",
-  "description": "Extension to manage and run test collections",
-  "version": "0.0.1",
+  "displayName": "PHP Test Collections Explorer",
+  "description": "VS Code extension for exploring, organizing and running PHP test collections with Docker support",
+  "version": "0.1.0",
+  "license": "MIT",
   "engines": {
     "vscode": "^1.105.0"
   },
   "categories": [
     "Testing"
   ],
+  "keywords": [
+    "php",
+    "phpunit",
+    "testing",
+    "test-collections",
+    "docker",
+    "test-runner",
+    "test-explorer"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Honemo/Tests-vs-ext.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Honemo/Tests-vs-ext/issues"
+  },
+  "homepage": "https://github.com/Honemo/Tests-vs-ext#readme",
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
@@ -67,7 +85,7 @@
       "test": [
         {
           "id": "testExplorer",
-          "name": "Tests Explorer"
+          "name": "PHP Test Collections"
         }
       ]
     },
@@ -135,29 +153,29 @@
             "properties": {
               "name": {
                 "type": "string",
-                "description": "Nom de la collection de tests"
+                "description": "Test collection name"
               },
               "path": {
                 "type": "string",
-                "description": "Chemin du dossier contenant les tests"
+                "description": "Path to the folder containing the tests"
               },
               "command": {
                 "type": "string",
-                "description": "Commande pour exécuter les tests (ex: 'vendor/bin/phpunit', 'composer test')"
+                "description": "Command to execute tests (e.g., 'vendor/bin/phpunit', 'composer test')"
               },
               "pattern": {
                 "type": "string",
-                "description": "Pattern pour les fichiers de test",
+                "description": "Pattern for test files",
                 "default": "*Test.php"
               },
               "useDocker": {
                 "type": "boolean",
-                "description": "Exécuter les tests dans un conteneur Docker",
+                "description": "Execute tests in a Docker container",
                 "default": false
               },
               "dockerImage": {
                 "type": "string",
-                "description": "Nom de l'image Docker à utiliser (ex: 'php:8.2-cli', 'mon-app:latest')"
+                "description": "Docker image name to use (e.g., 'php:8.2-cli', 'my-app:latest')"
               }
             },
             "required": ["name", "path", "command"]
@@ -186,7 +204,7 @@
               "dockerImage": "php:8.2-cli"
             }
           ],
-          "description": "Collections de tests PHP configurées"
+          "description": "Configured PHP test collections"
         }
       }
     }

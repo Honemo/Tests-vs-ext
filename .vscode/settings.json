@@ -11,7 +11,7 @@
 	// Turn off tsc task auto detection since we have the necessary tasks as npm scripts
 	"typescript.tsc.autoDetect": "off",
 	
-	// Configuration pour l'extension Test Explorer
+	// Configuration for PHP Test Collections extension
 	"phpTestCollections.collections": [
 		{
 			"name": "Unit Tests",
