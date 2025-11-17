@@ -37,12 +37,11 @@ export class TestItem extends vscode.TreeItem {
             this.iconPath = new vscode.ThemeIcon('folder');
             this.contextValue = 'testCollection';
             this.command = undefined;
-        } else if (testType === 'file' && testFile) {
+        } else if (testType === 'file') {
             // Icône pour les fichiers de test
             this.iconPath = new vscode.ThemeIcon('file');
             this.contextValue = 'testFile';
-            // this.tooltip = resourceUri?.fsPath;
-            this.tooltip = testFile.status;
+            this.tooltip = resourceUri?.fsPath;
             this.resourceUri = resourceUri;
         } else if (testType === 'method' && testMethod) {
             // Icône basée sur le statut du test

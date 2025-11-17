@@ -7,88 +7,77 @@ import { TestExplorerProvider } from './testExplorer';
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Test Explorer Extension is now active!');
-	vscode.window.showInformationMessage('Test Explorer Extension activated!');
-
-	// Créer le provider pour l'explorateur de tests
+	// Create the provider for the test explorer
 	const testExplorerProvider = new TestExplorerProvider(context);
 
-	// Créer la vue d'arbre
+	// Create the tree view
 	const testExplorerView = vscode.window.createTreeView('testExplorer', {
 		treeDataProvider: testExplorerProvider,
 		showCollapseAll: true
 	});
 
-	// Commande Hello World (garder pour la compatibilité)
-	const helloWorldDisposable = vscode.commands.registerCommand('tests-vs-extension.helloWorld', () => {
-		vscode.window.showInformationMessage('Hello World from Test Explorer Extension!');
-	});
-
-	// Commande pour rafraîchir le cache forcément
+	// Command to refresh the cache and rescan tests
 	const forceRefreshDisposable = vscode.commands.registerCommand('tests-vs-extension.forceRefresh', () => {
 		testExplorerProvider.forceRefresh();
 	});
 
-	// Commande pour ouvrir un fichier de test
+	// Command to open a test file
 	const openTestFileDisposable = vscode.commands.registerCommand('tests-vs-extension.openTestFile', (testItem) => {
 		testExplorerProvider.openTestFile(testItem.resourceUri);
 	});
 
-	// Commande pour configurer les collections de test
+	// Command to configure test collections
 	const configureTestFoldersDisposable = vscode.commands.registerCommand('tests-vs-extension.configureTestFolders', () => {
 		testExplorerProvider.configureTestFolders();
 	});
 
-	// Commande pour exécuter une collection de tests
+	// Command to run a test collection
 	const runTestCollectionDisposable = vscode.commands.registerCommand('tests-vs-extension.runTestCollection', (item: any) => {
 		if (item && item.collection) {
 			testExplorerProvider.runTestCollection(item.collection);
 		}
 	});
 
-	// Commande pour ajouter une nouvelle collection
+	// Command to add a new test collection
 	const addTestCollectionDisposable = vscode.commands.registerCommand('tests-vs-extension.addTestCollection', () => {
 		testExplorerProvider.addTestCollection();
 	});
 
-	// Commande pour exécuter un test individuel
+	// Command to run a single test
 	const runSingleTestDisposable = vscode.commands.registerCommand('tests-vs-extension.runSingleTest', (item: any) => {
 		if (item && item.testMethod) {
 			testExplorerProvider.runSingleTest(item.testMethod);
 		}
 	});
 
-	// Commande pour définir manuellement le statut d'un test
+	// Command to manually set the status of a test
 	const setTestStatusDisposable = vscode.commands.registerCommand('tests-vs-extension.setTestStatus', (item: any) => {
 		if (item && item.testMethod) {
 			testExplorerProvider.setTestStatusManually(item.testMethod);
 		}
 	});
 
-	// Commande pour afficher les détails d'erreur d'un test
+	// Command to show error details of a test
 	const showErrorDetailsDisposable = vscode.commands.registerCommand('tests-vs-extension.showErrorDetails', (item: any) => {
 		if (item && item.testMethod) {
 			testExplorerProvider.showTestErrorDetails(item.testMethod);
 		}
 	});
 
-	// Commande pour afficher l'onglet Output
+	// Command to show the Output tab
 	const showOutputDisposable = vscode.commands.registerCommand('tests-vs-extension.showOutput', () => {
 		testExplorerProvider.showOutput();
 	});
 
-	// Commande pour exécuter tous les tests d'un fichier
+	// Command to run all tests in a file
 	const runTestFileDisposable = vscode.commands.registerCommand('tests-vs-extension.runTestFile', (item: any) => {
 		if (item && item.resourceUri) {
 			testExplorerProvider.runTestFile(item.resourceUri, item.collection);
 		}
 	});
 
-	// Ajouter toutes les disposables au contexte
+	// Add all disposables to the context
 	context.subscriptions.push(
-		helloWorldDisposable,
 		forceRefreshDisposable,
 		openTestFileDisposable,
 		configureTestFoldersDisposable,
