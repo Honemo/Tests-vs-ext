@@ -78,48 +78,6 @@ export class CacheService {
     }
 
     /**
-     * Assure que le cache est ajouté au .gitignore
-     */
-    private ensureGitIgnore(): void {
-        if (!vscode.workspace.workspaceFolders || !this.cacheFilePath) return;
-        
-        try {
-            const workspaceRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
-            const gitignorePath = path.join(workspaceRoot, '.gitignore');
-            
-            // Obtenir le chemin relatif du fichier de cache
-            const relativeCachePath = path.relative(workspaceRoot, this.cacheFilePath);
-            
-            if (fs.existsSync(gitignorePath)) {
-                const gitignoreContent = fs.readFileSync(gitignorePath, 'utf8');
-                
-                // Vérifier si l'entrée spécifique existe déjà
-                if (gitignoreContent.includes(relativeCachePath)) {
-                    return; // L'entrée existe déjà
-                }
-                
-                // Vérifier si une entrée générique existe déjà
-                if (gitignoreContent.includes('.vscode/php-test-collections-cache') || 
-                    gitignoreContent.includes('php-test-collections-cache*.json')) {
-                    return; // Une entrée générique existe déjà
-                }
-            }
-            
-            // Ajouter une entrée générique pour tous les fichiers de cache
-            const genericEntry = '.vscode/php-test-collections-cache*.json';
-            const gitignoreContent = fs.existsSync(gitignorePath) ? fs.readFileSync(gitignorePath, 'utf8') : '';
-            const newContent = gitignoreContent + (gitignoreContent.endsWith('\\n') ? '' : '\\n') + 
-                             `\\n# PHP Test Collections Cache (workspace-specific)\\n${genericEntry}\\n`;
-            fs.writeFileSync(gitignorePath, newContent, 'utf8');
-            console.log('Entrée générique ajoutée au .gitignore pour les caches des tests');
-            this.logger.logInfo('Entrée de cache ajoutée au .gitignore');
-        } catch (error) {
-            console.warn('Impossible de mettre à jour .gitignore:', error);
-            this.logger.logWarning('Impossible de mettre à jour .gitignore: ' + error);
-        }
-    }
-
-    /**
      * Charge le cache depuis le fichier JSON
      */
     loadCache(): Map<string, CachedCollection> {
@@ -199,11 +157,8 @@ export class CacheService {
             
             // Sauvegarder dans le fichier JSON avec indentation pour la lisibilité
             fs.writeFileSync(this.cacheFilePath, JSON.stringify(cacheData, null, 2), 'utf8');
-            
-            // S'assurer que le fichier est dans .gitignore
-            this.ensureGitIgnore();
-            
-            console.log(`Cache sauvegardé dans ${this.cacheFilePath}`);
+
+
             this.logger.logSuccess(`Cache sauvegardé: ${cachedCollections.size} collections`);
         } catch (error) {
             this.logger.logError('Erreur lors de la sauvegarde du cache JSON', error instanceof Error ? error : new Error(String(error)));

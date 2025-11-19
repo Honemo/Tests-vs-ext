@@ -146,6 +146,18 @@
     "configuration": {
       "title": "PHP Test Collections",
       "properties": {
+        "phpTestCollections.logLevel": {
+          "type": "string",
+          "enum": ["error", "warn", "info", "debug"],
+          "enumDescriptions": [
+            "Only show errors",
+            "Show errors and warnings", 
+            "Show errors, warnings and info messages",
+            "Show all messages including debug info"
+          ],
+          "default": "info",
+          "description": "Controls the verbosity of extension logging output"
+        },
         "phpTestCollections.collections": {
           "type": "array",
           "items": {

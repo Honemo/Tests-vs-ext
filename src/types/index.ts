@@ -16,3 +16,6 @@ export { TestFile } from './TestFile';
 
 // Cache et persistance
 export { CachedCollection, JsonCacheData } from './Cache';
+
+// Logging configuration
+export { LogLevel, LogLevelValues } from './LogLevel';
