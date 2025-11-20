@@ -1,20 +1,20 @@
 /**
- * Types principaux pour PHP Test Collections Explorer
+ * Main types for PHP Test Collections Explorer
  * 
- * Ce module exporte tous les types et interfaces utilisés
- * dans l'extension pour la gestion des tests PHP.
+ * This module exports all types and interfaces used
+ * in the extension for PHP test management.
  */
 
-// Collections et configuration
+// Collections and configuration
 export { TestCollection } from './TestCollection';
 
-// Tests et statuts
+// Tests and statuses
 export { TestMethod, TestStatus } from './TestMethod';
 
-// Fichiers de test avec métriques
+// Test files with metrics
 export { TestFile } from './TestFile';
 
-// Cache et persistance
+// Cache and persistence
 export { CachedCollection, JsonCacheData } from './Cache';
 
 // Logging configuration

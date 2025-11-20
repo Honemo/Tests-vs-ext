@@ -4,47 +4,47 @@ import { TestMethod } from './TestMethod';
 import { TestFile } from './TestFile';
 
 /**
- * Interface pour les données en mémoire d'une collection mise en cache
+ * Interface for cached collection in-memory data
  */
 export interface CachedCollection {
-    /** Configuration de la collection */
+    /** Collection configuration */
     collection: TestCollection;
     
-    /** Liste des fichiers de test trouvés */
+    /** List of found test files */
     files: vscode.Uri[];
     
-    /** Liste de toutes les méthodes de test trouvées */
+    /** List of all found test methods */
     methods: TestMethod[];
     
-    /** Liste des fichiers de test avec leurs métriques */
+    /** List of test files with their metrics */
     testFiles: TestFile[];
     
-    /** Date du dernier scan de cette collection */
+    /** Date of last scan for this collection */
     lastScan: Date;
 }
 
 /**
- * Interface pour la structure JSON du cache persistant
+ * Interface for persistent cache JSON structure
  */
 export interface JsonCacheData {
-    /** Collections indexées par nom */
+    /** Collections indexed by name */
     collections: {[key: string]: {
-        /** Configuration de la collection */
+        /** Collection configuration */
         collection: TestCollection;
         
-        /** Chemins des fichiers (string pour sérialisation JSON) */
+        /** File paths (string for JSON serialization) */
         files: string[];
         
-        /** Méthodes de test avec dates sérialisées */
+        /** Test methods with serialized dates */
         methods: TestMethod[];
         
-        /** Fichiers de test avec dates sérialisées */
+        /** Test files with serialized dates */
         testFiles: TestFile[];
         
-        /** Date du dernier scan (string pour sérialisation JSON) */
+        /** Last scan date (string for JSON serialization) */
         lastScan: string;
     }};
     
-    /** Date de dernière mise à jour du cache global */
+    /** Global cache last update date */
     lastUpdate: string;
 }

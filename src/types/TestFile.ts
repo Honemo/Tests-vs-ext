@@ -2,39 +2,39 @@ import { TestCollection } from './TestCollection';
 import { TestStatus } from './TestMethod';
 
 /**
- * Interface définissant un fichier de test avec ses métriques globales
+ * Interface defining a test file with its global metrics
  */
 export interface TestFile {
-    /** Chemin absolu vers le fichier de test */
+    /** Absolute path to the test file */
     filePath: string;
     
-    /** Nom de la classe principale de test dans ce fichier */
+    /** Name of the main test class in this file */
     className: string;
     
-    /** Collection à laquelle appartient ce fichier */
+    /** Collection this file belongs to */
     collection: TestCollection;
     
-    /** Statut global du fichier (basé sur les tests qu'il contient) */
+    /** Global file status (based on tests it contains) */
     status?: TestStatus;
     
-    /** Date de la dernière exécution de tests dans ce fichier */
+    /** Date of last test execution in this file */
     lastRun?: Date;
     
-    /** Nombre total de tests dans ce fichier */
+    /** Total number of tests in this file */
     totalTests: number;
     
-    /** Nombre de tests qui ont réussi */
+    /** Number of tests that passed */
     passedTests: number;
     
-    /** Nombre de tests qui ont échoué */
+    /** Number of tests that failed */
     failedTests: number;
     
-    /** Nombre de tests avec des erreurs PHP */
+    /** Number of tests with PHP errors */
     errorTests: number;
     
-    /** Nombre de tests ignorés */
+    /** Number of skipped tests */
     skippedTests: number;
     
-    /** Nombre de tests en cours d'exécution */
+    /** Number of tests currently running */
     runningTests: number;
 }

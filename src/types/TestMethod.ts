@@ -1,7 +1,7 @@
 import { TestCollection } from './TestCollection';
 
 /**
- * Énumération des statuts possibles pour un test
+ * Enumeration of possible statuses for a test
  */
 export enum TestStatus {
     Unknown = 'unknown',
@@ -13,30 +13,30 @@ export enum TestStatus {
 }
 
 /**
- * Interface définissant une méthode de test individuelle
+ * Interface defining an individual test method
  */
 export interface TestMethod {
-    /** Nom de la méthode de test */
+    /** Test method name */
     name: string;
     
-    /** Nom de la classe contenant ce test */
+    /** Name of the class containing this test */
     className: string;
     
-    /** Chemin absolu vers le fichier contenant ce test */
+    /** Absolute path to the file containing this test */
     filePath: string;
     
-    /** Collection à laquelle appartient ce test */
+    /** Collection this test belongs to */
     collection: TestCollection;
     
-    /** Statut actuel du test */
+    /** Current test status */
     status?: TestStatus;
     
-    /** Date de la dernière exécution */
+    /** Date of last execution */
     lastRun?: Date;
     
-    /** Message d'erreur court en cas d'échec */
+    /** Short error message in case of failure */
     errorMessage?: string;
     
-    /** Détails complets de l'erreur (stack trace, output PHPUnit) */
+    /** Complete error details (stack trace, PHPUnit output) */
     failureDetails?: string;
 }
