@@ -1,7 +1,7 @@
 /**
- * Services pour PHP Test Collections Explorer
+ * Services for PHP Test Collections Explorer
  * 
- * Ce module exporte tous les services utilisés dans l'extension.
+ * This module exports all services used in the extension.
  */
 
 export { LoggingService } from './LoggingService';

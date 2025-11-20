@@ -4,56 +4,56 @@ import { TestCollection } from '../types/TestCollection';
 import { LoggingService } from './LoggingService';
 
 /**
- * Service de parsing des fichiers PHP pour extraire les méthodes de test
+ * PHP file parsing service to extract test methods
  * 
- * Responsabilités:
- * - Parser les fichiers PHP de test
- * - Extraire les méthodes de test (convention test* et annotation @test)
- * - Identifier les noms de classes
- * - Gérer les erreurs de parsing
+ * Responsibilities:
+ * - Parse PHP test files
+ * - Extract test methods (test* convention and @test annotation)
+ * - Identify class names
+ * - Handle parsing errors
  */
 export class TestParser {
     constructor(private logger: LoggingService) {}
 
     /**
-     * Parse un fichier PHP de test pour extraire toutes les méthodes de test
-     * @param filePath Chemin absolu vers le fichier PHP
-     * @param collection Collection de test associée
-     * @returns Liste des méthodes de test trouvées
+     * Parse a PHP test file to extract all test methods
+     * @param filePath Absolute path to the PHP file
+     * @param collection Associated test collection
+     * @returns List of found test methods
      */
     async parsePhpTestFile(filePath: string, collection: TestCollection): Promise<TestMethod[]> {
         try {
-            this.logger.logInfo(`🔍 Parsing fichier PHP: ${filePath}`);
+            this.logger.logInfo(`🔍 Parsing PHP file: ${filePath}`);
             
             const content = fs.readFileSync(filePath, 'utf8');
             const methods: TestMethod[] = [];
             
-            // Extraire le nom de la classe
+            // Extract class name
             const className = this.extractClassName(content);
             if (!className) {
-                this.logger.logWarning(`⚠️ Aucune classe trouvée dans ${filePath}`);
+                this.logger.logWarning(`⚠️ No class found in ${filePath}`);
                 return methods;
             }
 
-            this.logger.logDebug(`📝 Classe détectée: ${className}`);
+            this.logger.logDebug(`📝 Class detected: ${className}`);
             
-            // Extraire les méthodes de test
+            // Extract test methods
             const testMethods = this.extractTestMethods(content, className, filePath, collection);
             methods.push(...testMethods);
             
-            this.logger.logInfo(`✅ Parsing terminé: ${methods.length} méthodes trouvées dans ${className}`);
+            this.logger.logInfo(`✅ Parsing completed: ${methods.length} methods found in ${className}`);;
             return methods;
             
         } catch (error) {
-            this.logger.logError(`❌ Erreur lors du parsing du fichier ${filePath}`, error instanceof Error ? error : new Error(String(error)));
+            this.logger.logError(`❌ Error parsing file ${filePath}`, error instanceof Error ? error : new Error(String(error)));
             return [];
         }
     }
 
     /**
-     * Extrait le nom de la classe principale du fichier PHP
-     * @param content Contenu du fichier PHP
-     * @returns Nom de la classe ou null si non trouvé
+     * Extract the main class name from the PHP file
+     * @param content PHP file content
+     * @returns Class name or null if not found
      */
     private extractClassName(content: string): string | null {
         const classMatch = content.match(/class\s+(\w+)/);
@@ -61,26 +61,26 @@ export class TestParser {
     }
 
     /**
-     * Extrait toutes les méthodes de test du contenu PHP
-     * @param content Contenu du fichier PHP
-     * @param className Nom de la classe
-     * @param filePath Chemin du fichier
-     * @param collection Collection de test
-     * @returns Liste des méthodes de test
+     * Extract all test methods from PHP content
+     * @param content PHP file content
+     * @param className Class name
+     * @param filePath File path
+     * @param collection Test collection
+     * @returns List of test methods
      */
     private extractTestMethods(content: string, className: string, filePath: string, collection: TestCollection): TestMethod[] {
         const methods: TestMethod[] = [];
 
-        // Méthodes qui commencent par 'test'
+        // Methods starting with 'test'
         const conventionMethods = this.findConventionTestMethods(content);
         for (const methodName of conventionMethods) {
             methods.push(this.createTestMethod(methodName, className, filePath, collection));
         }
 
-        // Méthodes avec annotation @test
+        // Methods with @test annotation
         const annotatedMethods = this.findAnnotatedTestMethods(content);
         for (const methodName of annotatedMethods) {
-            // Éviter les doublons
+            // Avoid duplicates
             if (!methods.some(m => m.name === methodName)) {
                 methods.push(this.createTestMethod(methodName, className, filePath, collection));
             }
@@ -90,9 +90,9 @@ export class TestParser {
     }
 
     /**
-     * Trouve les méthodes suivant la convention test*
-     * @param content Contenu du fichier PHP
-     * @returns Liste des noms de méthodes
+     * Find methods following the test* convention
+     * @param content PHP file content
+     * @returns List of method names
      */
     private findConventionTestMethods(content: string): string[] {
         const methods: string[] = [];
@@ -107,9 +107,9 @@ export class TestParser {
     }
 
     /**
-     * Trouve les méthodes avec annotation @test
-     * @param content Contenu du fichier PHP
-     * @returns Liste des noms de méthodes
+     * Find methods with @test annotation
+     * @param content PHP file content
+     * @returns List of method names
      */
     private findAnnotatedTestMethods(content: string): string[] {
         const methods: string[] = [];
@@ -124,12 +124,12 @@ export class TestParser {
     }
 
     /**
-     * Crée un objet TestMethod
-     * @param name Nom de la méthode
-     * @param className Nom de la classe
-     * @param filePath Chemin du fichier
-     * @param collection Collection de test
-     * @returns Objet TestMethod
+     * Create a TestMethod object
+     * @param name Method name
+     * @param className Class name
+     * @param filePath File path
+     * @param collection Test collection
+     * @returns TestMethod object
      */
     private createTestMethod(name: string, className: string, filePath: string, collection: TestCollection): TestMethod {
         return {
@@ -142,15 +142,15 @@ export class TestParser {
     }
 
     /**
-     * Parse plusieurs fichiers PHP en parallèle
-     * @param filePaths Liste des chemins de fichiers
-     * @param collection Collection de test
-     * @returns Liste combinée de toutes les méthodes
+     * Parse multiple PHP files in parallel
+     * @param filePaths List of file paths
+     * @param collection Test collection
+     * @returns Combined list of all methods
      */
     async parseMultipleFiles(filePaths: string[], collection: TestCollection): Promise<TestMethod[]> {
         const allMethods: TestMethod[] = [];
         
-        this.logger.logInfo(`🔍 Parsing de ${filePaths.length} fichiers PHP...`);
+        this.logger.logInfo(`🔍 Parsing ${filePaths.length} PHP files...`);
         
         const promises = filePaths.map(filePath => this.parsePhpTestFile(filePath, collection));
         const results = await Promise.all(promises);
@@ -159,14 +159,14 @@ export class TestParser {
             allMethods.push(...methods);
         }
         
-        this.logger.logInfo(`✅ Parsing terminé: ${allMethods.length} méthodes trouvées au total`);
+        this.logger.logInfo(`✅ Parsing completed: ${allMethods.length} methods found in total`);
         return allMethods;
     }
 
     /**
-     * Validation du format de fichier PHP de test
-     * @param filePath Chemin du fichier
-     * @returns True si le fichier semble être un fichier de test PHP valide
+     * Validate PHP test file format
+     * @param filePath File path
+     * @returns True if the file appears to be a valid PHP test file
      */
     isValidPhpTestFile(filePath: string): boolean {
         try {
@@ -176,15 +176,15 @@ export class TestParser {
 
             const content = fs.readFileSync(filePath, 'utf8');
             
-            // Vérifier présence d'une classe
+            // Check for class presence
             const hasClass = /class\s+\w+/.test(content);
             
-            // Vérifier présence de méthodes de test
+            // Check for test methods presence
             const hasTestMethods = /(?:function\s+test\w+|@test[\s\S]*?function)/.test(content);
             
             return hasClass && hasTestMethods;
         } catch (error) {
-            this.logger.logWarning(`⚠️ Impossible de valider le fichier ${filePath}: ${error}`);
+            this.logger.logWarning(`⚠️ Unable to validate file ${filePath}: ${error}`);
             return false;
         }
     }

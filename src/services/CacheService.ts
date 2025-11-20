@@ -114,7 +114,6 @@ export class CacheService {
                     });
                 }
                 
-                console.log(`Cache loaded from ${this.cacheFilePath}: ${Object.keys(cacheData.collections).length} collections`);
                 this.logger.logSuccess(`Cache loaded: ${Object.keys(cacheData.collections).length} collections`);
             }
         } catch (error) {

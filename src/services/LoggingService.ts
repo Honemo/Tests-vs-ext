@@ -2,10 +2,10 @@ import * as vscode from 'vscode';
 import { LogLevel, LogLevelValues } from '../types';
 
 /**
- * Service de logging centralisé pour PHP Test Collections Explorer
+ * Centralized logging service for PHP Test Collections Explorer
  * 
- * Gère l'affichage des logs dans l'onglet Output dédié de VS Code
- * avec formatage, timestamps automatiques et niveaux de logging configurables.
+ * Manages log display in VS Code's dedicated Output tab
+ * with formatting, automatic timestamps and configurable logging levels.
  */
 export class LoggingService {
     private readonly outputChannel: vscode.OutputChannel;
@@ -27,7 +27,7 @@ export class LoggingService {
             }
         });
 
-        this.log('🚀 Service de logging initialisé');
+        this.log('🚀 Logging service initialized');
     }
 
     /**
@@ -53,8 +53,8 @@ export class LoggingService {
     }
 
     /**
-     * Log un message simple avec timestamp
-     * @param message Message à logger
+     * Log a simple message with timestamp
+     * @param message Message to log
      */
     log(message: string): void {
         const timestamp = new Date().toLocaleTimeString();
@@ -62,27 +62,27 @@ export class LoggingService {
     }
 
     /**
-     * Log une commande avec mise en forme spéciale
-     * @param context Contexte de l'exécution de la commande
-     * @param command Commande à exécuter
+     * Log a command with special formatting
+     * @param context Command execution context
+     * @param command Command to execute
      */
     logCommand(context: string, command: string): void {
         if (!this.shouldLog(LogLevel.Info)) return;
         
         this.log(`📝 ${context}`);
-        this.log(`   Commande: ${command}`);
-        this.log(''); // Ligne vide pour la lisibilité
+        this.log(`   Command: ${command}`);
+        this.log(''); // Empty line for readability
     }
 
     /**
-     * Log un message d'erreur avec formatage spécial
-     * @param message Message d'erreur
-     * @param error Erreur optionnelle avec stack trace
+     * Log an error message with special formatting
+     * @param message Error message
+     * @param error Optional error with stack trace
      */
     logError(message: string, error?: Error): void {
         if (!this.shouldLog(LogLevel.Error)) return;
         
-        this.log(`❌ ERREUR: ${message}`);
+        this.log(`❌ ERROR: ${message}`);
         if (error) {
             this.log(`   Message: ${error.message}`);
             if (error.stack) {
@@ -93,8 +93,8 @@ export class LoggingService {
     }
 
     /**
-     * Log un message de debug (utilisé pour le développement)
-     * @param message Message de debug
+     * Log a debug message (used for development)
+     * @param message Debug message
      */
     logDebug(message: string): void {
         if (!this.shouldLog(LogLevel.Debug)) return;
@@ -103,8 +103,8 @@ export class LoggingService {
     }
 
     /**
-     * Log un message d'information avec formatage spécial
-     * @param message Message d'information
+     * Log an information message with special formatting
+     * @param message Information message
      */
     logInfo(message: string): void {
         if (!this.shouldLog(LogLevel.Info)) return;
@@ -113,8 +113,8 @@ export class LoggingService {
     }
 
     /**
-     * Log un message de succès
-     * @param message Message de succès
+     * Log a success message
+     * @param message Success message
      */
     logSuccess(message: string): void {
         if (!this.shouldLog(LogLevel.Info)) return;
@@ -123,8 +123,8 @@ export class LoggingService {
     }
 
     /**
-     * Log un message d'avertissement
-     * @param message Message d'avertissement
+     * Log a warning message
+     * @param message Warning message
      */
     logWarning(message: string): void {
         if (!this.shouldLog(LogLevel.Warn)) return;
@@ -140,29 +140,29 @@ export class LoggingService {
     }
 
     /**
-     * Ajouter une ligne vide pour la lisibilité
+     * Add an empty line for readability
      */
     logSeparator(): void {
         this.outputChannel.appendLine('');
     }
 
     /**
-     * Afficher l'onglet Output
+     * Show the Output tab
      */
     show(): void {
         this.outputChannel.show();
     }
 
     /**
-     * Effacer le contenu de l'Output
+     * Clear the Output content
      */
     clear(): void {
         this.outputChannel.clear();
-        this.log('📋 Logs effacés');
+        this.log('📋 Logs cleared');
     }
 
     /**
-     * Libérer les ressources
+     * Release resources
      */
     dispose(): void {
         this.configWatcher?.dispose();

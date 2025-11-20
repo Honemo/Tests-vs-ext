@@ -2,21 +2,21 @@ import * as vscode from 'vscode';
 import { LoggingService } from './LoggingService';
 
 /**
- * Type de callback pour les événements de fichier
+ * Callback type for file events
  */
 export type FileChangeCallback = (uri: vscode.Uri) => void;
 export type WorkspaceChangeCallback = () => void;
 export type ConfigurationChangeCallback = (event: vscode.ConfigurationChangeEvent) => void;
 
 /**
- * Service de surveillance des fichiers et changements workspace
+ * File and workspace change monitoring service
  * 
- * Responsabilités:
- * - Surveiller les fichiers PHP pour changements/créations/suppressions
- * - Détecter les changements de configuration VS Code
- * - Gérer les changements de workspace folders
- * - Centraliser tous les watchers et leurs callbacks
- * - Cleanup automatique des ressources
+ * Responsibilities:
+ * - Monitor PHP files for changes/creation/deletion
+ * - Detect VS Code configuration changes
+ * - Handle workspace folder changes
+ * - Centralize all watchers and their callbacks
+ * - Automatic resource cleanup
  */
 export class FileWatcher {
     private phpFileWatcher: vscode.FileSystemWatcher | undefined;
@@ -25,100 +25,100 @@ export class FileWatcher {
     constructor(private logger: LoggingService) {}
 
     /**
-     * Initialise la surveillance des fichiers PHP
-     * @param onFileChange Callback pour les changements de fichiers (create/change/delete)
+     * Initialize PHP file monitoring
+     * @param onFileChange Callback for file changes (create/change/delete)
      */
     watchPhpFiles(onFileChange: FileChangeCallback): void {
-        this.logger.logInfo('🔍 Initialisation surveillance fichiers PHP...');
+        this.logger.logInfo('🔍 Initializing PHP file monitoring...');
 
-        // Créer le watcher pour les fichiers PHP
+        // Create watcher for PHP files
         this.phpFileWatcher = vscode.workspace.createFileSystemWatcher('**/*.php');
         
-        // Configurer les callbacks pour tous les types d'événements
+        // Configure callbacks for all event types
         this.phpFileWatcher.onDidCreate((uri) => {
-            this.logger.logDebug(`📁 Fichier PHP créé: ${uri.fsPath}`);
+            this.logger.logDebug(`📁 PHP file created: ${uri.fsPath}`);
             onFileChange(uri);
         });
 
         this.phpFileWatcher.onDidChange((uri) => {
-            this.logger.logDebug(`📝 Fichier PHP modifié: ${uri.fsPath}`);
+            this.logger.logDebug(`📝 PHP file modified: ${uri.fsPath}`);
             onFileChange(uri);
         });
 
         this.phpFileWatcher.onDidDelete((uri) => {
-            this.logger.logDebug(`🗑️ Fichier PHP supprimé: ${uri.fsPath}`);
+            this.logger.logDebug(`🗑️ PHP file deleted: ${uri.fsPath}`);
             onFileChange(uri);
         });
 
-        this.logger.logSuccess('✅ Surveillance fichiers PHP activée');
+        this.logger.logSuccess('✅ PHP file monitoring enabled');
     }
 
     /**
-     * Surveille les changements de workspace folders
-     * @param onWorkspaceChange Callback pour les changements de workspace
+     * Monitor workspace folder changes
+     * @param onWorkspaceChange Callback for workspace changes
      */
     watchWorkspaceFolders(onWorkspaceChange: WorkspaceChangeCallback): void {
-        this.logger.logInfo('🏗️ Initialisation surveillance workspace folders...');
+        this.logger.logInfo('🏗️ Initializing workspace folder monitoring...');
 
         const disposable = vscode.workspace.onDidChangeWorkspaceFolders((event) => {
-            this.logger.logInfo(`📂 Workspace folders changés: +${event.added.length} -${event.removed.length}`);
+            this.logger.logInfo(`📂 Workspace folders changed: +${event.added.length} -${event.removed.length}`);
             
-            // Log détaillé des changements
+            // Detailed logging of changes
             for (const added of event.added) {
-                this.logger.logDebug(`➕ Folder ajouté: ${added.uri.fsPath}`);
+                this.logger.logDebug(`➕ Folder added: ${added.uri.fsPath}`);
             }
             for (const removed of event.removed) {
-                this.logger.logDebug(`➖ Folder supprimé: ${removed.uri.fsPath}`);
+                this.logger.logDebug(`➖ Folder removed: ${removed.uri.fsPath}`);
             }
 
             onWorkspaceChange();
         });
 
         this.disposables.push(disposable);
-        this.logger.logSuccess('✅ Surveillance workspace folders activée');
+        this.logger.logSuccess('✅ Workspace folder monitoring enabled');
     }
 
     /**
-     * Surveille les changements de configuration VS Code
-     * @param onConfigChange Callback pour les changements de configuration
-     * @param configurationSection Section spécifique à surveiller (optionnel)
+     * Monitor VS Code configuration changes
+     * @param onConfigChange Callback for configuration changes
+     * @param configurationSection Specific section to monitor (optional)
      */
     watchConfiguration(onConfigChange: ConfigurationChangeCallback, configurationSection?: string): void {
-        this.logger.logInfo(`⚙️ Initialisation surveillance configuration${configurationSection ? ` (${configurationSection})` : ''}...`);
+        this.logger.logInfo(`⚙️ Initializing configuration monitoring${configurationSection ? ` (${configurationSection})` : ''}...`);
 
         const disposable = vscode.workspace.onDidChangeConfiguration((event) => {
-            // Filtrer par section si spécifiée
+            // Filter by section if specified
             if (configurationSection && !event.affectsConfiguration(configurationSection)) {
                 return;
             }
 
-            this.logger.logInfo(`⚙️ Configuration changée${configurationSection ? ` dans ${configurationSection}` : ''}`);
+            this.logger.logInfo(`⚙️ Configuration changed${configurationSection ? ` in ${configurationSection}` : ''}`);
             onConfigChange(event);
         });
 
         this.disposables.push(disposable);
-        this.logger.logSuccess('✅ Surveillance configuration activée');
+        this.logger.logSuccess('✅ Configuration monitoring enabled');
     }
 
     /**
-     * Surveille la fermeture des terminaux VS Code
-     * @param onTerminalClose Callback pour la fermeture de terminal
+     * Monitor VS Code terminal close events
+     * @param onTerminalClose Callback for terminal closure
      */
     watchTerminalClose(onTerminalClose: () => void): void {
-        this.logger.logInfo('🖥️ Initialisation surveillance terminaux...');
+        this.logger.logInfo('🖥️ Initializing terminal monitoring...');
 
         const disposable = vscode.window.onDidCloseTerminal((terminal) => {
-            this.logger.logDebug(`🖥️ Terminal fermé: ${terminal.name || 'sans nom'}`);
+            this.logger.logDebug(`🖥️ Terminal closed: ${terminal.name || 'unnamed'}`);
             onTerminalClose();
         });
 
         this.disposables.push(disposable);
-        this.logger.logSuccess('✅ Surveillance terminaux activée');
+        this.logger.logSuccess('✅ Terminal monitoring enabled');
     }
 
     /**
-     * Active toutes les surveillances avec les callbacks fournis
-     * @param callbacks Objet contenant tous les callbacks nécessaires
+     * Enable all monitoring with provided callbacks
+     * @param callbacks Object containing all necessary callbacks
      */
     watchAll(callbacks: {
         onFileChange: FileChangeCallback;
@@ -127,47 +127,47 @@ export class FileWatcher {
         onTerminalClose: () => void;
         configurationSection?: string;
     }): void {
-        this.logger.logInfo('🚀 Initialisation complète de la surveillance...');
+        this.logger.logInfo('🚀 Initializing complete monitoring...');
 
         this.watchPhpFiles(callbacks.onFileChange);
         this.watchWorkspaceFolders(callbacks.onWorkspaceChange);
         this.watchConfiguration(callbacks.onConfigChange, callbacks.configurationSection);
         this.watchTerminalClose(callbacks.onTerminalClose);
 
-        this.logger.logSuccess('✅ Toutes les surveillances sont actives');
+        this.logger.logSuccess('✅ All monitoring systems are active');
     }
 
     /**
-     * Désactive temporairement la surveillance des fichiers PHP
+     * Temporarily disable PHP file monitoring
      */
     pausePhpFileWatching(): void {
         if (this.phpFileWatcher) {
             this.phpFileWatcher.dispose();
             this.phpFileWatcher = undefined;
-            this.logger.logInfo('⏸️ Surveillance fichiers PHP mise en pause');
+            this.logger.logInfo('⏸️ PHP file monitoring paused');
         }
     }
 
     /**
-     * Réactive la surveillance des fichiers PHP
-     * @param onFileChange Callback pour les changements
+     * Resume PHP file monitoring
+     * @param onFileChange Callback for changes
      */
     resumePhpFileWatching(onFileChange: FileChangeCallback): void {
         if (!this.phpFileWatcher) {
             this.watchPhpFiles(onFileChange);
-            this.logger.logInfo('▶️ Surveillance fichiers PHP reprise');
+            this.logger.logInfo('▶️ PHP file monitoring resumed');
         }
     }
 
     /**
-     * Vérifie si la surveillance PHP est active
+     * Check if PHP monitoring is active
      */
     isPhpWatchingActive(): boolean {
         return this.phpFileWatcher !== undefined;
     }
 
     /**
-     * Obtient les statistiques de surveillance
+     * Get monitoring statistics
      */
     getWatchingStats(): {
         phpWatcherActive: boolean;
@@ -180,24 +180,24 @@ export class FileWatcher {
     }
 
     /**
-     * Nettoyage de toutes les surveillances et ressources
+     * Cleanup all monitoring and resources
      */
     dispose(): void {
-        this.logger.logInfo('🧹 Nettoyage FileWatcher...');
+        this.logger.logInfo('🧹 Cleaning up FileWatcher...');
 
-        // Disposer du watcher de fichiers PHP
+        // Dispose PHP file watcher
         if (this.phpFileWatcher) {
             this.phpFileWatcher.dispose();
             this.phpFileWatcher = undefined;
-            this.logger.logDebug('🗑️ PHP FileSystemWatcher disposé');
+            this.logger.logDebug('🗑️ PHP FileSystemWatcher disposed');
         }
 
-        // Disposer de tous les autres disposables
+        // Dispose all other disposables
         for (const disposable of this.disposables) {
             disposable.dispose();
         }
         this.disposables = [];
 
-        this.logger.logSuccess('✅ FileWatcher nettoyé avec succès');
+        this.logger.logSuccess('✅ FileWatcher cleaned up successfully');
     }
 }

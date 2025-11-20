@@ -5,10 +5,10 @@ import { TestCollection, TestMethod, TestStatus, CachedCollection } from '../typ
 import { LoggingService } from './LoggingService';
 
 /**
- * Service de gestion de l'exécution des tests PHPUnit
+ * PHPUnit test execution management service
  * 
- * Gère l'exécution des tests individuels, collections, et parsing des résultats
- * avec support Docker et capture d'output.
+ * Manages individual test execution, collections, and result parsing
+ * with Docker support and output capture.
  */
 export class TestRunner {
     private readonly logger: LoggingService;
@@ -20,7 +20,7 @@ export class TestRunner {
     }
 
     /**
-     * Exécute tous les tests d'une collection
+     * Execute all tests in a collection
      */
     async runTestCollection(collection: TestCollection): Promise<void> {
         try {
@@ -34,26 +34,26 @@ export class TestRunner {
             // Build command with Docker if needed
             const finalCommand = this.buildDockerCommand(collection, collection.command, workspaceFolder.uri.fsPath);
             
-            // Logger la commande
-            this.logger.logCommand(`Exécution de la collection: ${collection.name}`, finalCommand);
+            // Log the command
+            this.logger.logCommand(`Executing collection: ${collection.name}`, finalCommand);
             
-            // Exécuter la commande directement dans le terminal (sans mise à jour des statuts)
+            // Execute command directly in terminal (without status updates)
             this.executeCollectionWithoutCapture(finalCommand, workspaceFolder.uri.fsPath, collection);
             
             const dockerInfo = collection.useDocker ? ` 🐳 (Docker: ${collection.dockerImage})` : '';
-            vscode.window.showInformationMessage(`Exécution des tests: ${collection.name}${dockerInfo}`);
+            vscode.window.showInformationMessage(`Running tests: ${collection.name}${dockerInfo}`);
         } catch (error) {
             vscode.window.showErrorMessage(`Erreur: ${error}`);
         }
     }
 
     /**
-     * Exécute un test individuel avec capture d'output pour parsing du résultat
+     * Execute an individual test with output capture for result parsing
      */
     async runTestMethod(testMethod: TestMethod, onTestUpdate?: (testMethod: TestMethod) => void): Promise<void> {
         try {
             if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
-                vscode.window.showErrorMessage('Aucun workspace ouvert');
+                vscode.window.showErrorMessage('No workspace opened');
                 return;
             }
 			if (onTestUpdate) {
@@ -67,32 +67,32 @@ export class TestRunner {
 
             const workspaceFolder = vscode.workspace.workspaceFolders[0];
 
-            // Construire la commande PHPUnit pour un test spécifique
-            // Format: vendor/bin/phpunit --filter "TestClass::testMethod" [autres options] path/to/file
+            // Build PHPUnit command for a specific test
+            // Format: vendor/bin/phpunit --filter "TestClass::testMethod" [other options] path/to/file
             const collection = testMethod.collection;
             
-            // Parser la commande de base pour séparer la commande PHPUnit, les options et le chemin
+            // Parse base command to separate PHPUnit command, options and path
             const baseCommand = collection.command;
             
-            // Construire la commande finale avec le filtre
+            // Build final command with filter
             const filterOption = `--filter "${testMethod.className}::${testMethod.name}"`;
             let finalCommand = `${baseCommand} ${filterOption}`;
             
-            // Ajouter le chemin du fichier à la fin
+            // Add file path at the end
             const relativePath = path.relative(workspaceFolder.uri.fsPath, testMethod.filePath);
             finalCommand += ` ${relativePath}`;
             
-            // Appliquer Docker si nécessaire
+            // Apply Docker if necessary
             finalCommand = this.buildDockerCommand(collection, finalCommand, workspaceFolder.uri.fsPath);
             
-            // Logger la commande
-            this.logger.logCommand(`Exécution test: ${testMethod.className}::${testMethod.name}`, finalCommand);
+            // Log the command
+            this.logger.logCommand(`Running test: ${testMethod.className}::${testMethod.name}`, finalCommand);
             
-            // Exécuter avec capture pour parser le résultat
+            // Execute with capture to parse the result
             this.executeTestWithCapture(finalCommand, workspaceFolder.uri.fsPath, testMethod, onTestUpdate);
 
             const dockerInfo = collection.useDocker ? ` 🐳 (Docker: ${collection.dockerImage})` : '';
-            vscode.window.showInformationMessage(`Exécution du test: ${testMethod.name}${dockerInfo}`);
+            vscode.window.showInformationMessage(`Running test: ${testMethod.name}${dockerInfo}`);
 
         } catch (error) {
             vscode.window.showErrorMessage(`Erreur: ${error}`);
@@ -100,7 +100,7 @@ export class TestRunner {
     }
 
     /**
-     * Exécute un fichier de test complet
+     * Execute a complete test file
      */
     async runTestFile(
         fileUri: vscode.Uri, 
@@ -108,75 +108,75 @@ export class TestRunner {
         cachedCollections: Map<string, CachedCollection>,
         onTestUpdate?: (testMethod: TestMethod) => void
     ): Promise<void> {
-        // 🔍 Début du debug de runTestFile
-        this.logger.log(`🚀 DEBUG runTestFile - Démarrage`);
-        this.logger.log(`   📂 Fichier: ${fileUri.fsPath}`);
+        // 🔍 Start of runTestFile debug
+        this.logger.log(`🚀 DEBUG runTestFile - Starting`);
+        this.logger.log(`   📂 File: ${fileUri.fsPath}`);
         this.logger.log(`   📦 Collection: ${collection.name}`);
-        this.logger.log(`   🐳 Docker: ${collection.useDocker ? `Oui (${collection.dockerImage})` : 'Non'}`);
+        this.logger.log(`   🐳 Docker: ${collection.useDocker ? `Yes (${collection.dockerImage})` : 'No'}`);
         this.logger.log('');
 
         try {
             if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
-                this.logger.log(`❌ DEBUG - Aucun workspace ouvert`);
-                vscode.window.showErrorMessage('Aucun workspace ouvert');
+                this.logger.log(`❌ DEBUG - No workspace opened`);
+                vscode.window.showErrorMessage('No workspace opened');
                 return;
             }
 
             const workspaceFolder = vscode.workspace.workspaceFolders[0];
             this.logger.log(`📁 DEBUG - Workspace: ${workspaceFolder.uri.fsPath}`);
 
-            // Extraire le nom de la classe à partir du chemin du fichier
+            // Extract class name from file path
             const fileName = path.basename(fileUri.fsPath, '.php');
-            this.logger.log(`📄 DEBUG - Nom du fichier: ${fileName}`);
+            this.logger.log(`📄 DEBUG - File name: ${fileName}`);
             
-            // Chercher dans le cache des méthodes pour trouver la classe correspondante à ce fichier
+            // Search in method cache to find the corresponding class for this file
             const cachedData = cachedCollections.get(collection.name);
-            this.logger.log(`💾 DEBUG - Cache trouvé: ${cachedData ? 'Oui' : 'Non'}`);
+            this.logger.log(`💾 DEBUG - Cache found: ${cachedData ? 'Yes' : 'No'}`);
             if (cachedData) {
-                this.logger.log(`   Total méthodes en cache: ${cachedData.methods.length}`);
-                this.logger.log(`   Dernière mise à jour cache: ${cachedData.lastScan}`);
+                this.logger.log(`   Total cached methods: ${cachedData.methods.length}`);
+                this.logger.log(`   Last cache update: ${cachedData.lastScan}`);
             }
             
             if (!cachedData) {
-                this.logger.log(`❌ DEBUG - Aucune donnée en cache pour la collection: ${collection.name}`);
-                vscode.window.showErrorMessage('Aucune donnée en cache pour cette collection. Veuillez actualiser la vue.');
+                this.logger.log(`❌ DEBUG - No cached data for collection: ${collection.name}`);
+                vscode.window.showErrorMessage('No cached data for this collection. Please refresh the view.');
                 return;
             }
 
-            // Trouver la première méthode de ce fichier pour obtenir le nom de classe
+            // Find the first method from this file to get the class name
             const methodsFromFile = cachedData.methods.filter((method: TestMethod) => method.filePath === fileUri.fsPath);
-            this.logger.log(`🔍 DEBUG - Recherche méthodes dans le fichier:`);
-            this.logger.log(`   Chemin recherché: ${fileUri.fsPath}`);
-            this.logger.log(`   Méthodes trouvées: ${methodsFromFile.length}`);
+            this.logger.log(`🔍 DEBUG - Searching methods in file:`);
+            this.logger.log(`   Search path: ${fileUri.fsPath}`);
+            this.logger.log(`   Methods found: ${methodsFromFile.length}`);
             
             if (methodsFromFile.length > 0) {
-                this.logger.log(`   Première méthode: ${methodsFromFile[0].className}::${methodsFromFile[0].name}`);
+                this.logger.log(`   First method: ${methodsFromFile[0].className}::${methodsFromFile[0].name}`);
                 methodsFromFile.forEach((method, index) => {
                     this.logger.log(`   [${index}] ${method.className}::${method.name} (${method.filePath})`);
                 });
             }
 
             if (methodsFromFile.length === 0) {
-                this.logger.log(`❌ DEBUG - Aucune méthode trouvée dans ce fichier`);
-                vscode.window.showErrorMessage('Aucune méthode de test trouvée dans ce fichier.');
+                this.logger.log(`❌ DEBUG - No methods found in this file`);
+                vscode.window.showErrorMessage('No test methods found in this file.');
                 return;
             }
 
             const className = methodsFromFile[0].className;
-            this.logger.log(`🏷️ DEBUG - Nom de classe extrait: ${className}`);
+            this.logger.log(`🏷️ DEBUG - Extracted class name: ${className}`);
 
-            // Parser la commande de base pour séparer la commande PHPUnit, les options et le chemin
+            // Parse base command to separate PHPUnit command, options and path
             const baseCommand = collection.command;
-            this.logger.log(`📋 DEBUG - Commande de base: ${baseCommand}`);
+            this.logger.log(`📋 DEBUG - Base command: ${baseCommand}`);
             
-            // Construire la commande finale avec le filtre pour la classe
+            // Build final command with filter for the class
             const filterOption = `--filter "${className}"`;
             let finalCommand = `${baseCommand} ${filterOption}`;
             
-            // Ajouter le chemin du fichier à la fin
+            // Add file path at the end
             const relativePath = path.relative(workspaceFolder.uri.fsPath, fileUri.fsPath);
             finalCommand += ` ${relativePath}`;            
-            // Appliquer Docker si nécessaire
+            // Apply Docker if necessary
             finalCommand = this.buildDockerCommand(collection, finalCommand, workspaceFolder.uri.fsPath);
 
 			for (const method of methodsFromFile) {
@@ -190,28 +190,28 @@ export class TestRunner {
 				}
 			}
             
-            // Exécuter avec capture pour traiter chaque méthode individuellement
+            // Execute with capture to process each method individually
             exec(finalCommand, { cwd: workspaceFolder.uri.fsPath }, (error, stdout, stderr) => {
                 const output = stdout + stderr;
-                this.logger.log(`📊 DEBUG - Résultats d'exécution du fichier ${fileName}:`);
-                this.logger.log(`   stdout: ${stdout.length} caractères`);
-                this.logger.log(`   stderr: ${stderr.length} caractères`);
+                this.logger.log(`📊 DEBUG - File execution results ${fileName}:`);
+                this.logger.log(`   stdout: ${stdout.length} characters`);
+                this.logger.log(`   stderr: ${stderr.length} characters`);
                 if (error) {
-                    this.logger.log(`   Erreur: ${error.message}`);
+                    this.logger.log(`   Error: ${error.message}`);
                 }
                 
-                // Traiter les résultats pour chaque méthode du fichier
+                // Process results for each method in the file
                 for (const method of methodsFromFile) {
                     let status = TestStatus.Unknown;
                     let errorMessage = '';
                     
-                    // Logic simplifiée de parsing (peut être améliorée)
+                    // Simplified parsing logic (can be improved)
                     if (output.includes(`${method.name} ...`) || output.includes(`${method.name}:`)) {
                         if (output.includes('OK') && !output.includes('FAILURES') && !output.includes('ERRORS')) {
                             status = TestStatus.Passed;
                         } else if (output.includes('FAILURES') || output.includes('ERRORS') || output.includes('FAILED')) {
                             status = TestStatus.Failed;
-                            // Extraire le message d'erreur si possible
+                            // Extract error message if possible
                             const errorLines = output.split('\n').filter(line => 
                                 line.includes('AssertionFailedError') || 
                                 line.includes('Failed asserting') ||
@@ -227,14 +227,14 @@ export class TestRunner {
 						status = TestStatus.Passed;
 					}
                     
-                    // Mettre à jour le statut de la méthode
+                    // Update method status
                     method.status = status;
                     method.lastRun = new Date();
                     method.errorMessage = errorMessage;
                     
                     this.logger.log(`   📋 ${method.name}: ${status}${errorMessage ? ` - ${errorMessage}` : ''}`);
                     
-                    // Notifier la mise à jour via le callback
+                    // Notify update via callback
 					if (onTestUpdate) {
 						onTestUpdate({
 							...method,
@@ -246,50 +246,50 @@ export class TestRunner {
                 }
                 
                 const dockerInfo = collection.useDocker ? ` 🐳 (Docker: ${collection.dockerImage})` : '';
-                const message = `Tests exécutés pour ${fileName}${dockerInfo}`;
+                const message = `Tests executed for ${fileName}${dockerInfo}`;
                 this.logger.log(`✅ DEBUG - ${message}`);
                 vscode.window.showInformationMessage(message);
             });
 
-            this.logger.log(`🚀 DEBUG runTestFile - Fin de l'initialisation`);
+            this.logger.log(`🚀 DEBUG runTestFile - Initialization complete`);
         } catch (error) {
-            this.logger.log(`❌ DEBUG runTestFile - Erreur: ${error}`);
-            vscode.window.showErrorMessage(`Erreur lors de l'exécution: ${error}`);
+            this.logger.log(`❌ DEBUG runTestFile - Error: ${error}`);
+            vscode.window.showErrorMessage(`Error during execution: ${error}`);
         }
     }
 
     /**
-     * Exécute un test avec capture de sortie pour analyse du résultat
+     * Execute a test with output capture for result analysis
      */
     private executeTestWithCapture(command: string, cwd: string, testMethod: TestMethod, onTestUpdate?: (testMethod: TestMethod) => void): void {
         
-        // Exécuter en arrière-plan avec capture de sortie pour les détails d'erreur
+        // Execute in background with output capture for error details
         exec(command, { cwd }, (error, stdout, stderr) => {
             const output = stdout + stderr;
             
-            // Logger les détails d'exécution
-            this.logger.log(`📊 Détails d'exécution pour ${testMethod.className}::${testMethod.name}:`);
+            // Log execution details
+            this.logger.log(`📊 Execution details for ${testMethod.className}::${testMethod.name}:`);
             if (error) {
-                this.logger.log(`   ⚠️ Erreur d'exécution: ${error.message}`);
-                this.logger.log(`   🔢 Code de sortie: ${error.code || 'non défini'}`);
+                this.logger.log(`   ⚠️ Execution error: ${error.message}`);
+                this.logger.log(`   🔢 Exit code: ${error.code || 'undefined'}`);
             }
-            this.logger.log(`   📤 stdout: ${stdout.length} caractères`);
-            this.logger.log(`   📥 stderr: ${stderr.length} caractères`);
+            this.logger.log(`   📤 stdout: ${stdout.length} characters`);
+            this.logger.log(`   📥 stderr: ${stderr.length} characters`);
             this.logger.log('');
             
-            // Parser la sortie pour déterminer le statut et extraire les détails d'erreur
+            // Parse output to determine status and extract error details
             let status = TestStatus.Unknown;
             let errorMessage = '';
             let failureDetails = '';
             
             if (output.includes('OK (')) {
                 status = TestStatus.Passed;
-                this.logger.log(`   ✅ Test réussi`);
+                this.logger.log(`   ✅ Test passed`);
             } else if (output.includes('FAILURES!') || output.includes('ERRORS!') || error) {
                 status = TestStatus.Failed;
-                this.logger.log(`   ❌ Test échoué`);
+                this.logger.log(`   ❌ Test failed`);
                 
-                // Extraire les détails d'erreur plus précis
+                // Extract more precise error details
                 const lines = output.split('\n');
                 let captureNext = false;
                 let errorSection = [];
@@ -297,7 +297,7 @@ export class TestRunner {
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i];
                     
-                    // Détecter les sections d'erreur
+                    // Detect error sections
                     if (line.includes('FAILURES:') || line.includes('ERRORS:')) {
                         captureNext = true;
                         continue;
@@ -305,12 +305,12 @@ export class TestRunner {
                     
                     if (captureNext) {
                         if (line.trim() === '' && errorSection.length > 0) {
-                            break; // Fin de la section d'erreur
+                            break; // End of error section
                         }
                         if (line.trim() !== '') {
                             errorSection.push(line);
                         }
-                        // Limiter à 5 lignes pour éviter un output trop verbeux
+                        // Limit to 5 lines to avoid too verbose output
                         if (errorSection.length >= 5) {
                             break;
                         }
@@ -320,27 +320,27 @@ export class TestRunner {
                 if (errorSection.length > 0) {
                     errorMessage = errorSection[0].replace(/^\d+\)\s*/, '').trim();
                     failureDetails = errorSection.slice(0, 3).join('\n');
-                    this.logger.log(`   📝 Message d'erreur: ${errorMessage}`);
-                    this.logger.log(`   📄 Sortie brute PHPUnit:`);
+                    this.logger.log(`   📝 Error message: ${errorMessage}`);
+                    this.logger.log(`   📄 Raw PHPUnit output:`);
                     errorSection.slice(0, 3).forEach(line => this.logger.log(`      ${line}`));
                 } else if (error) {
                     errorMessage = error.message;
-                    this.logger.log(`   💥 Erreur d'exécution: ${errorMessage}`);
+                    this.logger.log(`   💥 Execution error: ${errorMessage}`);
                 }
             } else {
-                this.logger.log(`   ❓ Statut indéterminé, sortie à analyser`);
+                this.logger.log(`   ❓ Undetermined status, output to analyze`);
             }
             
-            // Mettre à jour le TestMethod avec les informations collectées
+            // Update TestMethod with collected information
             testMethod.status = status;
-			this.logger.logInfo(`   Mise à jour du statut du test: ${testMethod.className}::${testMethod.name} → ${status}`);
+			this.logger.logInfo(`   Test status update: ${testMethod.className}::${testMethod.name} → ${status}`);
             testMethod.lastRun = new Date();
             testMethod.errorMessage = errorMessage;
             
-            // Afficher le résultat à l'utilisateur
+            // Display result to user
             const statusIcon = status === TestStatus.Passed ? '✅' : status === TestStatus.Failed ? '❌' : '❓';
             const message = `${statusIcon} Test ${testMethod.className}::${testMethod.name}: ${status}`;
-            this.logger.log(`🎯 Résultat final: ${message}`);
+            this.logger.log(`🎯 Final result: ${message}`);
             this.logger.log('');
 
 			if (onTestUpdate) {
@@ -362,7 +362,7 @@ export class TestRunner {
     }
 
     /**
-     * Exécute une collection sans capture (affichage direct dans terminal)
+     * Execute a collection without capture (direct display in terminal)
      */
     private executeCollectionWithoutCapture(command: string, cwd: string, collection: TestCollection): void {
         const terminal = this.getOrCreateTerminal(collection.name);
@@ -371,29 +371,29 @@ export class TestRunner {
     }
 
     /**
-     * Configure le statut d'un test manuellement
+     * Configure test status manually
      */
     async setTestStatusManually(testMethod: TestMethod): Promise<void> {
         const statusOptions = [
-            { label: '✅ Réussi', value: TestStatus.Passed },
-            { label: '❌ Échoué', value: TestStatus.Failed }, 
-            { label: '⏭️ Ignoré', value: TestStatus.Skipped },
-            { label: '❓ Inconnu', value: TestStatus.Unknown }
+            { label: '✅ Passed', value: TestStatus.Passed },
+            { label: '❌ Failed', value: TestStatus.Failed }, 
+            { label: '⏭️ Skipped', value: TestStatus.Skipped },
+            { label: '❓ Unknown', value: TestStatus.Unknown }
         ];
 
         const selectedOption = await vscode.window.showQuickPick(statusOptions, {
-            placeHolder: `Définir le statut pour ${testMethod.className}::${testMethod.name}`
+            placeHolder: `Set status for ${testMethod.className}::${testMethod.name}`
         });
 
         if (selectedOption) {
             testMethod.status = selectedOption.value;
             testMethod.lastRun = new Date();
             
-            // Message d'erreur personnalisé si échec
+            // Custom error message if failed
             if (selectedOption.value === TestStatus.Failed) {
                 const errorMessage = await vscode.window.showInputBox({
-                    prompt: 'Message d\'erreur (optionnel)',
-                    placeHolder: 'Entrez le message d\'erreur...'
+                    prompt: 'Error message (optional)',
+                    placeHolder: 'Enter error message...'
                 });
                 
                 if (errorMessage) {
@@ -403,34 +403,34 @@ export class TestRunner {
                 testMethod.errorMessage = undefined;
             }
             
-            this.logger.logSuccess(`Statut manuel défini pour ${testMethod.className}::${testMethod.name}: ${selectedOption.value}`);
-            vscode.window.showInformationMessage(`Statut défini: ${testMethod.className}::${testMethod.name} → ${selectedOption.label}`);
+            this.logger.logSuccess(`Manual status set for ${testMethod.className}::${testMethod.name}: ${selectedOption.value}`);
+            vscode.window.showInformationMessage(`Status set: ${testMethod.className}::${testMethod.name} → ${selectedOption.label}`);
         }
     }
 
     /**
-     * Construit une commande Docker si nécessaire
+     * Build a Docker command if necessary
      */
     private buildDockerCommand(collection: TestCollection, command: string, workspacePath: string): string {
         if (!collection.useDocker || !collection.dockerImage) {
             return command;
         }
 
-        // Construire la commande Docker
-        // Format: docker exec image command (sans -it pour éviter l'erreur TTY)
+        // Build Docker command
+        // Format: docker exec image command (without -it to avoid TTY error)
         const dockerCommand = `docker exec ${collection.dockerImage} ${command}`;
         
-        this.logger.log(`🐳 Transformation Docker pour la collection "${collection.name}"`);
-        this.logger.log(`   Commande originale: ${command}`);
-        this.logger.log(`   Commande Docker:    ${dockerCommand}`);
-        this.logger.log(`   ℹ️  Note: Utilisation sans -it pour compatibilité VS Code`);
+        this.logger.log(`🐳 Docker transformation for collection "${collection.name}"`);
+        this.logger.log(`   Original command: ${command}`);
+        this.logger.log(`   Docker command:    ${dockerCommand}`);
+        this.logger.log(`   ℹ️  Note: Using without -it for VS Code compatibility`);
         this.logger.log('');
         
         return dockerCommand;
     }
 
     /**
-     * Obtient ou crée un terminal pour une collection
+     * Get or create a terminal for a collection
      */
     private getOrCreateTerminal(collectionName: string): vscode.Terminal {
         let terminal = this.collectionTerminals.get(collectionName);
@@ -442,7 +442,7 @@ export class TestRunner {
     }
 
     /**
-     * Nettoie les terminaux fermés
+     * Clean up closed terminals
      */
     cleanupClosedTerminals(): void {
         for (const [collectionName, terminal] of this.collectionTerminals.entries()) {
@@ -453,16 +453,16 @@ export class TestRunner {
     }
 
     /**
-     * Libère les ressources
+     * Release resources
      */
     dispose(): void {
-        // Fermer tous les terminaux
+        // Close all terminals
         for (const terminal of this.collectionTerminals.values()) {
             terminal.dispose();
         }
         this.collectionTerminals.clear();
 
-        // Supprimer les handlers de données de terminal
+        // Remove terminal data handlers
         for (const handler of this.terminalDataHandlers.values()) {
             handler.dispose();
         }
