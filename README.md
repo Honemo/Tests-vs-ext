@@ -66,7 +66,8 @@ chmod +x install.sh
       "useDocker": true,
       "dockerImage": "my-app"
     }
-  ]
+  ],
+  "phpTestCollections.logLevel": "info"
 }
 ```
 
@@ -145,10 +146,46 @@ Automatic command transformation:
 
 ## 📋 Logs and Debugging
 
+### Output System
 - **Output Tab**: "PHP Test Collections"  
+- **Configurable Levels**: `error` | `warn` | `info` | `debug`
+- **Real-time Filtering**: Only relevant messages displayed
 - **Traced Commands** with timestamps
 - **Detailed Docker errors**
+
+### Logging Levels
+- **🔴 Error**: Critical failures only
+- **🟡 Warning**: + Configuration issues  
+- **🔵 Info**: + Test execution (default)
+- **🟣 Debug**: + Internal operations
+
+### Logging Configuration
+
+Control the verbosity of extension output with configurable logging levels:
+
+```json
+{
+  "phpTestCollections.logLevel": "info"
+}
+```
+
+| Level | Description | Output |
+|-------|-------------|--------|
+| `"error"` | Critical errors only | ❌ Fatal errors, crashes |
+| `"warn"` | Errors + warnings | ❌ + ⚠️ Configuration issues, missing files |
+| `"info"` | Standard output (default) | ❌ + ⚠️ + ℹ️ Test execution, cache operations |
+| `"debug"` | Verbose development mode | ❌ + ⚠️ + ℹ️ + 🔍 Internal operations, parsing details |
+
+**Examples:**
+- **Production**: `"error"` - Only critical issues
+- **Development**: `"debug"` - Full diagnostic information
+- **CI/CD**: `"warn"` - Balanced output for automation
+- **Default**: `"info"` - Perfect for daily usage
+
+### Quick Actions
 - **Force refresh**: 🔄 Button
+- **Change log level**: VS Code Settings → "PHP Test Collections"
+- **View logs**: Output → "PHP Test Collections"
 
 ## 🛠️ Development
 
@@ -191,7 +228,7 @@ npx @vscode/vsce package
 
 ### Modular Design (6 Services)
 - 📁 **types/**: Centralized TypeScript interfaces
-- 📝 **LoggingService**: Premium logging system (113 lines)
+- 📝 **LoggingService**: Configurable logging system with 4 levels (113 lines)
 - 💾 **CacheService**: JSON cache management (228 lines)
 - 🚀 **TestRunner**: PHPUnit execution engine (492 lines)
 - 🔍 **TestParser**: PHP parsing with dual detection (190 lines)
