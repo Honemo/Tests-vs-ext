@@ -66,8 +66,8 @@
         "icon": "$(edit)"
       },
       {
-        "command": "tests-vs-extension.showErrorDetails",
-        "title": "Show Error Details",
+        "command": "tests-vs-extension.showTestDetails",
+        "title": "Show Test Details",
         "icon": "$(info)"
       },
       {
@@ -137,7 +137,7 @@
           "when": "view == testExplorer && viewItem == testMethod"
         },
         {
-          "command": "tests-vs-extension.showErrorDetails",
+          "command": "tests-vs-extension.showTestDetails",
           "when": "view == testExplorer && viewItem == testMethod",
           "group": "inline"
         }

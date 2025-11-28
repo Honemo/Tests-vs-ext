@@ -29,7 +29,7 @@ export class FileWatcher {
      * @param onFileChange Callback for file changes (create/change/delete)
      */
     watchPhpFiles(onFileChange: FileChangeCallback): void {
-        this.logger.logInfo('🔍 Initializing PHP file monitoring...');
+        this.logger.logDebug('🔍 Initializing PHP file monitoring...');
 
         // Create watcher for PHP files
         this.phpFileWatcher = vscode.workspace.createFileSystemWatcher('**/*.php');
@@ -58,10 +58,10 @@ export class FileWatcher {
      * @param onWorkspaceChange Callback for workspace changes
      */
     watchWorkspaceFolders(onWorkspaceChange: WorkspaceChangeCallback): void {
-        this.logger.logInfo('🏗️ Initializing workspace folder monitoring...');
+        this.logger.logDebug('🏗️ Initializing workspace folder monitoring...');
 
         const disposable = vscode.workspace.onDidChangeWorkspaceFolders((event) => {
-            this.logger.logInfo(`📂 Workspace folders changed: +${event.added.length} -${event.removed.length}`);
+            this.logger.logDebug(`📂 Workspace folders changed: +${event.added.length} -${event.removed.length}`);
             
             // Detailed logging of changes
             for (const added of event.added) {
@@ -84,7 +84,7 @@ export class FileWatcher {
      * @param configurationSection Specific section to monitor (optional)
      */
     watchConfiguration(onConfigChange: ConfigurationChangeCallback, configurationSection?: string): void {
-        this.logger.logInfo(`⚙️ Initializing configuration monitoring${configurationSection ? ` (${configurationSection})` : ''}...`);
+        this.logger.logDebug(`⚙️ Initializing configuration monitoring${configurationSection ? ` (${configurationSection})` : ''}...`);
 
         const disposable = vscode.workspace.onDidChangeConfiguration((event) => {
             // Filter by section if specified
@@ -92,7 +92,7 @@ export class FileWatcher {
                 return;
             }
 
-            this.logger.logInfo(`⚙️ Configuration changed${configurationSection ? ` in ${configurationSection}` : ''}`);
+            this.logger.logDebug(`⚙️ Configuration changed${configurationSection ? ` in ${configurationSection}` : ''}`);
             onConfigChange(event);
         });
 
@@ -105,7 +105,7 @@ export class FileWatcher {
      * @param onTerminalClose Callback for terminal closure
      */
     watchTerminalClose(onTerminalClose: () => void): void {
-        this.logger.logInfo('🖥️ Initializing terminal monitoring...');
+        this.logger.logDebug('🖥️ Initializing terminal monitoring...');
 
         const disposable = vscode.window.onDidCloseTerminal((terminal) => {
             this.logger.logDebug(`🖥️ Terminal closed: ${terminal.name || 'unnamed'}`);
@@ -113,7 +113,7 @@ export class FileWatcher {
         });
 
         this.disposables.push(disposable);
-        this.logger.logSuccess('✅ Terminal monitoring enabled');
+        this.logger.logDebug('✅ Terminal monitoring enabled');
     }
 
     /**
@@ -127,7 +127,7 @@ export class FileWatcher {
         onTerminalClose: () => void;
         configurationSection?: string;
     }): void {
-        this.logger.logInfo('🚀 Initializing complete monitoring...');
+        this.logger.logDebug('🚀 Initializing complete monitoring...');
 
         this.watchPhpFiles(callbacks.onFileChange);
         this.watchWorkspaceFolders(callbacks.onWorkspaceChange);
@@ -144,7 +144,7 @@ export class FileWatcher {
         if (this.phpFileWatcher) {
             this.phpFileWatcher.dispose();
             this.phpFileWatcher = undefined;
-            this.logger.logInfo('⏸️ PHP file monitoring paused');
+            this.logger.logDebug('⏸️ PHP file monitoring paused');
         }
     }
 
@@ -155,7 +155,7 @@ export class FileWatcher {
     resumePhpFileWatching(onFileChange: FileChangeCallback): void {
         if (!this.phpFileWatcher) {
             this.watchPhpFiles(onFileChange);
-            this.logger.logInfo('▶️ PHP file monitoring resumed');
+            this.logger.logDebug('▶️ PHP file monitoring resumed');
         }
     }
 

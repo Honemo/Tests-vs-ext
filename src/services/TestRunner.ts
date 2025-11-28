@@ -110,10 +110,9 @@ export class TestRunner {
     ): Promise<void> {
         // 🔍 Start of runTestFile debug
         this.logger.log(`🚀 DEBUG runTestFile - Starting`);
-        this.logger.log(`   📂 File: ${fileUri.fsPath}`);
-        this.logger.log(`   📦 Collection: ${collection.name}`);
-        this.logger.log(`   🐳 Docker: ${collection.useDocker ? `Yes (${collection.dockerImage})` : 'No'}`);
-        this.logger.log('');
+        this.logger.logDebug(`📂 File: ${fileUri.fsPath}`);
+        this.logger.logDebug(`📦 Collection: ${collection.name}`);
+        this.logger.logDebug(`🐳 Docker: ${collection.useDocker ? `Yes (${collection.dockerImage})` : 'No'}`);
 
         try {
             if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
@@ -123,36 +122,35 @@ export class TestRunner {
             }
 
             const workspaceFolder = vscode.workspace.workspaceFolders[0];
-            this.logger.log(`📁 DEBUG - Workspace: ${workspaceFolder.uri.fsPath}`);
+            this.logger.logDebug(`📁 DEBUG - Workspace: ${workspaceFolder.uri.fsPath}`);
 
             // Extract class name from file path
             const fileName = path.basename(fileUri.fsPath, '.php');
-            this.logger.log(`📄 DEBUG - File name: ${fileName}`);
             
             // Search in method cache to find the corresponding class for this file
             const cachedData = cachedCollections.get(collection.name);
-            this.logger.log(`💾 DEBUG - Cache found: ${cachedData ? 'Yes' : 'No'}`);
+            this.logger.logDebug(`💾 DEBUG - Cache found: ${cachedData ? 'Yes' : 'No'}`);
             if (cachedData) {
-                this.logger.log(`   Total cached methods: ${cachedData.methods.length}`);
-                this.logger.log(`   Last cache update: ${cachedData.lastScan}`);
+                this.logger.logDebug(`Total cached methods: ${cachedData.methods.length}`);
+                this.logger.logDebug(`Last cache update: ${cachedData.lastScan}`);
             }
             
             if (!cachedData) {
-                this.logger.log(`❌ DEBUG - No cached data for collection: ${collection.name}`);
+                this.logger.logDebug(`❌ DEBUG - No cached data for collection: ${collection.name}`);
                 vscode.window.showErrorMessage('No cached data for this collection. Please refresh the view.');
                 return;
             }
 
             // Find the first method from this file to get the class name
             const methodsFromFile = cachedData.methods.filter((method: TestMethod) => method.filePath === fileUri.fsPath);
-            this.logger.log(`🔍 DEBUG - Searching methods in file:`);
-            this.logger.log(`   Search path: ${fileUri.fsPath}`);
-            this.logger.log(`   Methods found: ${methodsFromFile.length}`);
+            this.logger.logDebug(`🔍 DEBUG - Searching methods in file:`);
+            this.logger.logDebug(`Search path: ${fileUri.fsPath}`);
+            this.logger.logDebug(`Methods found: ${methodsFromFile.length}`);
             
             if (methodsFromFile.length > 0) {
-                this.logger.log(`   First method: ${methodsFromFile[0].className}::${methodsFromFile[0].name}`);
+                this.logger.logDebug(`First method: ${methodsFromFile[0].className}::${methodsFromFile[0].name}`);
                 methodsFromFile.forEach((method, index) => {
-                    this.logger.log(`   [${index}] ${method.className}::${method.name} (${method.filePath})`);
+                    this.logger.logDebug(`[${index}] ${method.className}::${method.name} (${method.filePath})`);
                 });
             }
 
@@ -163,11 +161,11 @@ export class TestRunner {
             }
 
             const className = methodsFromFile[0].className;
-            this.logger.log(`🏷️ DEBUG - Extracted class name: ${className}`);
+            this.logger.logDebug(`🏷️ DEBUG - Extracted class name: ${className}`);
 
             // Parse base command to separate PHPUnit command, options and path
             const baseCommand = collection.command;
-            this.logger.log(`📋 DEBUG - Base command: ${baseCommand}`);
+            this.logger.logDebug(`📋 DEBUG - Base command: ${baseCommand}`);
             
             // Build final command with filter for the class
             const filterOption = `--filter "${className}"`;
@@ -189,16 +187,20 @@ export class TestRunner {
 					});
 				}
 			}
+			// Log the command
+			this.logger.logCommand(`Executing test: ${fileName}`, finalCommand);
             
             // Execute with capture to process each method individually
             exec(finalCommand, { cwd: workspaceFolder.uri.fsPath }, (error, stdout, stderr) => {
                 const output = stdout + stderr;
+            	
                 this.logger.log(`📊 DEBUG - File execution results ${fileName}:`);
                 this.logger.log(`   stdout: ${stdout.length} characters`);
                 this.logger.log(`   stderr: ${stderr.length} characters`);
                 if (error) {
-                    this.logger.log(`   Error: ${error.message}`);
+                    this.logger.logError(output, error);
                 }
+				// this.logger.log(output);
                 
                 // Process results for each method in the file
                 for (const method of methodsFromFile) {
@@ -230,7 +232,8 @@ export class TestRunner {
                     // Update method status
                     method.status = status;
                     method.lastRun = new Date();
-                    method.errorMessage = errorMessage;
+                    // method.errorMessage = errorMessage;
+                    method.errorMessage = output;
                     
                     this.logger.log(`   📋 ${method.name}: ${status}${errorMessage ? ` - ${errorMessage}` : ''}`);
                     
@@ -240,7 +243,7 @@ export class TestRunner {
 							...method,
 							status: status,
 							lastRun: new Date(),
-							errorMessage: errorMessage
+							errorMessage: output
 						});
 					}
                 }
@@ -333,9 +336,9 @@ export class TestRunner {
             
             // Update TestMethod with collected information
             testMethod.status = status;
-			this.logger.logInfo(`   Test status update: ${testMethod.className}::${testMethod.name} → ${status}`);
+			this.logger.logDebug(`Test status update: ${testMethod.className}::${testMethod.name} → ${status}`);
             testMethod.lastRun = new Date();
-            testMethod.errorMessage = errorMessage;
+            testMethod.errorMessage = output;
             
             // Display result to user
             const statusIcon = status === TestStatus.Passed ? '✅' : status === TestStatus.Failed ? '❌' : '❓';
@@ -348,7 +351,7 @@ export class TestRunner {
 					...testMethod,
 					status: status,
 					lastRun: new Date(),
-					errorMessage: errorMessage
+					errorMessage: output
 				});
 			}
 			

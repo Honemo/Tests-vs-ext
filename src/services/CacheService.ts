@@ -53,7 +53,6 @@ export class CacheService {
             
             this.cacheFilePath = path.join(workspaceRoot, '.vscode', cacheFileName);
             
-            console.log(`Cache initialized for workspace: ${this.cacheFilePath}`);
             this.logger.logInfo(`Cache initialized: ${this.cacheFilePath}`);
         } else {
             // Fallback to global extension storage if no workspace
@@ -69,9 +68,9 @@ export class CacheService {
         if (this.cacheFilePath && fs.existsSync(this.cacheFilePath)) {
             try {
                 fs.unlinkSync(this.cacheFilePath);
-                console.log('JSON cache deleted, forced refresh');
-                this.logger.logInfo('JSON cache deleted for forced refresh');
+                this.logger.logDebug('JSON cache deleted for forced refresh');
             } catch (error) {
+				this.logger.logDebug('JSON cache not deleted error for forced refresh');
                 this.logger.logError('Error deleting cache', error instanceof Error ? error : new Error(String(error)));
             }
         }
@@ -102,7 +101,7 @@ export class CacheService {
                     
                     // If no testFiles in cache, note for reconstruction
                     if (testFiles.length === 0 && methods.length > 0) {
-                        this.logger.logInfo(`Cache requires reconstruction for "${collectionName}"`);
+                        this.logger.logDebug(`Cache requires reconstruction for "${collectionName}"`);
                     }
                     
                     cachedCollections.set(collectionName, {
@@ -114,7 +113,7 @@ export class CacheService {
                     });
                 }
                 
-                this.logger.logSuccess(`Cache loaded: ${Object.keys(cacheData.collections).length} collections`);
+                this.logger.logDebug(`Cache loaded: ${Object.keys(cacheData.collections).length} collections`);
             }
         } catch (error) {
             this.logger.logError('Error loading JSON cache', error instanceof Error ? error : new Error(String(error)));
@@ -157,7 +156,7 @@ export class CacheService {
             // Save to JSON file with indentation for readability
             fs.writeFileSync(this.cacheFilePath, JSON.stringify(cacheData, null, 2), 'utf8');
 
-            this.logger.logSuccess(`Cache saved: ${cachedCollections.size} collections`);
+            this.logger.logDebug(`Cache saved: ${cachedCollections.size} collections`);
         } catch (error) {
             this.logger.logError('Error saving JSON cache', error instanceof Error ? error : new Error(String(error)));
         }

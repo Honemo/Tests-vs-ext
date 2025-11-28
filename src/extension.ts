@@ -58,9 +58,9 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	// Command to show error details of a test
-	const showErrorDetailsDisposable = vscode.commands.registerCommand('tests-vs-extension.showErrorDetails', (item: any) => {
+	const showErrorDetailsDisposable = vscode.commands.registerCommand('tests-vs-extension.showTestDetails', (item: any) => {
 		if (item && item.testMethod) {
-			testExplorerProvider.showTestErrorDetails(item.testMethod);
+			testExplorerProvider.showTestResultsDetails(item.testMethod);
 		}
 	});
 

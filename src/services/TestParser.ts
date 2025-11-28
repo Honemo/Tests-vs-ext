@@ -23,7 +23,7 @@ export class TestParser {
      */
     async parsePhpTestFile(filePath: string, collection: TestCollection): Promise<TestMethod[]> {
         try {
-            this.logger.logInfo(`🔍 Parsing PHP file: ${filePath}`);
+            this.logger.logDebug(`🔍 Parsing PHP file: ${filePath}`);
             
             const content = fs.readFileSync(filePath, 'utf8');
             const methods: TestMethod[] = [];
@@ -41,7 +41,7 @@ export class TestParser {
             const testMethods = this.extractTestMethods(content, className, filePath, collection);
             methods.push(...testMethods);
             
-            this.logger.logInfo(`✅ Parsing completed: ${methods.length} methods found in ${className}`);;
+            this.logger.logDebug(`✅ Parsing completed: ${methods.length} methods found in ${className}`);;
             return methods;
             
         } catch (error) {
@@ -150,7 +150,7 @@ export class TestParser {
     async parseMultipleFiles(filePaths: string[], collection: TestCollection): Promise<TestMethod[]> {
         const allMethods: TestMethod[] = [];
         
-        this.logger.logInfo(`🔍 Parsing ${filePaths.length} PHP files...`);
+        this.logger.logDebug(`🔍 Parsing ${filePaths.length} PHP files...`);
         
         const promises = filePaths.map(filePath => this.parsePhpTestFile(filePath, collection));
         const results = await Promise.all(promises);
@@ -159,7 +159,7 @@ export class TestParser {
             allMethods.push(...methods);
         }
         
-        this.logger.logInfo(`✅ Parsing completed: ${allMethods.length} methods found in total`);
+        this.logger.logDebug(`✅ Parsing completed: ${allMethods.length} methods found in total`);
         return allMethods;
     }
 

@@ -9,12 +9,15 @@ import { LogLevel, LogLevelValues } from '../types';
  */
 export class LoggingService {
     private readonly outputChannel: vscode.OutputChannel;
+    private readonly errorOutputChannel: vscode.OutputChannel;
     private readonly channelName = 'PHP Test Collections';
+    private readonly errorChannelName = 'PHP Test Details';
     private currentLevel: LogLevel;
     private configWatcher: vscode.Disposable;
 
     constructor() {
         this.outputChannel = vscode.window.createOutputChannel(this.channelName);
+        this.errorOutputChannel = vscode.window.createOutputChannel(this.errorChannelName);
         
         // Initialize logging level from configuration
         this.currentLevel = this.getConfiguredLevel();
@@ -92,6 +95,13 @@ export class LoggingService {
         this.log('');
     }
 
+	logErrorDetails(message: string): void {
+		this.errorOutputChannel.clear();
+		// this.errorOutputChannel.
+		this.errorOutputChannel.append(message);
+		this.errorOutputChannel.show();
+	}
+
     /**
      * Log a debug message (used for development)
      * @param message Debug message
@@ -117,7 +127,7 @@ export class LoggingService {
      * @param message Success message
      */
     logSuccess(message: string): void {
-        if (!this.shouldLog(LogLevel.Info)) return;
+        if (!this.shouldLog(LogLevel.Debug)) return;
         
         this.log(`✅ ${message}`);
     }

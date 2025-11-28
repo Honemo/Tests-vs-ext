@@ -178,7 +178,7 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
 
     private getPhpTestFiles(dirPath: string, pattern: string): vscode.Uri[] {
         try {
-            this.logger.logInfo(`📁 Getting PHP files in: ${dirPath} with pattern: ${pattern}`);
+            this.logger.logDebug(`📁 Getting PHP files in: ${dirPath} with pattern: ${pattern}`);
             const files: vscode.Uri[] = [];
             
             if (fs.existsSync(dirPath)) {
@@ -221,7 +221,6 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
 
     updateTestStatus(collectionName: string, className: string, methodName: string, status: TestStatus, errorMessage?: string, failureDetails?: string): void {
         this.logger.logInfo(`🔄 Updating test status: ${collectionName} :: ${className} :: ${methodName} => ${status}`);
-        this.logger.logDebug(`Debug info`);
         const cached = this.cachedCollections.get(collectionName);
         if (!cached) return;
 
@@ -271,9 +270,9 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
         const config = vscode.workspace.getConfiguration('phpTestCollections');
         this.collections = config.get<TestCollection[]>('collections', []);
         
-        this.logger.logInfo(`🔍 Loading ${this.collections.length} configured collections`);
+        this.logger.logDebug(`🔍 Loading ${this.collections.length} configured collections`);
         for (const collection of this.collections) {
-            this.logger.logInfo(`📂 Collection: ${collection.name} (path: ${collection.path})`);
+            this.logger.logDebug(`📂 Collection: ${collection.name} (path: ${collection.path})`);
         }
         
         // Automatically load methods for each collection
@@ -281,11 +280,11 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
             await this.loadCollectionMethods(collection);
         }
         
-        this.logger.logInfo(`✅ Collections loaded. Cache contains: ${this.cachedCollections.size} collections`);
+        this.logger.logDebug(`✅ Collections loaded. Cache contains: ${this.cachedCollections.size} collections`);
     }
 
     private async getCollectionFiles(collection: TestCollection): Promise<TestItem[]> {
-        this.logger.logInfo(`📁 Getting files for collection: ${collection.name}`);
+        this.logger.logDebug(`📁 Getting files for collection: ${collection.name}`);
         const cached = this.cachedCollections.get(collection.name);
         if (!cached) return [];
 
@@ -337,11 +336,11 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
     private async loadCollectionMethods(collection: TestCollection): Promise<void> {
         // Check cache first
         if (!this.shouldRefreshCache(collection)) {
-            this.logger.logInfo(`💾 Using cache for: ${collection.name}`);
+            this.logger.logDebug(`💾 Using cache for: ${collection.name}`);
             return; // Use existing cache
         }
 
-        this.logger.logInfo(`🔄 Loading collection: ${collection.name}`);
+        this.logger.logDebug(`🔄 Loading collection: ${collection.name}`);
         
         try {
             if (!vscode.workspace.workspaceFolders) {
@@ -355,14 +354,14 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
 
             for (const workspaceFolder of vscode.workspace.workspaceFolders) {
                 const collectionPath = path.join(workspaceFolder.uri.fsPath, collection.path);
-                this.logger.logInfo(`📁 Getting files for collection: ${collection.name}`);
-                this.logger.logInfo(`📂 Scanning directory: ${collectionPath}`);
+                this.logger.logDebug(`📁 Getting files for collection: ${collection.name}`);
+                this.logger.logDebug(`📂 Scanning directory: ${collectionPath}`);
                 
                 if (fs.existsSync(collectionPath)) {
                     const pattern = collection.pattern || '**/*Test.php';
-                    this.logger.logInfo(`🔍 Search pattern: ${pattern}`);
+                    this.logger.logDebug(`🔍 Search pattern: ${pattern}`);
                     const phpFiles = this.getPhpTestFiles(collectionPath, pattern);
-                    this.logger.logInfo(`📄 ${phpFiles.length} PHP files found`);
+                    this.logger.logDebug(`📄 ${phpFiles.length} PHP files found`);
                     files.push(...phpFiles);
 
                     // Parse each PHP file to extract test methods
@@ -516,10 +515,10 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
     }
 
     // Methods for VS Code actions (remain in provider)
-    async showTestErrorDetails(testMethod: TestMethod): Promise<void> {
+    async showTestResultsDetails(testMethod: TestMethod): Promise<void> {
         if (testMethod.errorMessage) {
-            const message = `Error details for ${testMethod.className}::${testMethod.name}:\n\n${testMethod.errorMessage}`;
-            await vscode.window.showInformationMessage(message, { modal: true });
+			const message = `Error details for ${testMethod.className}::${testMethod.name}:\n\n${testMethod.errorMessage}`;
+			this.logger.logErrorDetails(message);
         } else {
             await vscode.window.showInformationMessage(`No error recorded for ${testMethod.className}::${testMethod.name}`);
         }
