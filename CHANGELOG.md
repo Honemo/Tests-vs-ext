@@ -4,6 +4,36 @@ All notable changes to the "PHP Test Collections Explorer" extension will be doc
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [0.1.1] - 2024-11-28
+
+### ✨ New Features
+- **Test Error Details Panel**: New dedicated WebView panel for displaying test errors
+  - Rich HTML formatting with VS Code theme integration
+  - Detailed error information including method, class, file, and collection
+  - Formatted error messages and stack traces
+  - Suggested actions for debugging
+- **Enhanced Error Visualization**: Improved error display with proper HTML escaping
+- **Better UX**: Test error details now open in a separate tab instead of modal dialogs
+
+### 🔧 Improvements  
+- **Logging System**: Fully configurable logging levels (error, warn, info, debug)
+  - Real-time level changes without restart
+  - Performance optimization by filtering debug messages
+  - Clear level hierarchy and user documentation
+- **Code Translation**: Complete English translation of all source files
+  - Professional documentation and comments
+  - Consistent terminology across the extension
+  - International-ready codebase
+
+### 🐛 Bug Fixes
+- **Error Display**: Fixed modal dialog limitations for long error messages
+- **HTML Escaping**: Proper escaping of error content to prevent rendering issues
+- **UI Consistency**: Improved error presentation consistency
+
+### 📚 Documentation
+- **README**: Added comprehensive logging configuration section
+- **Error Handling**: Documented new error details panel functionality
+- **Code Comments**: All source files now have English documentation
 
 ## [0.1.0] - 2025-11-17
 
