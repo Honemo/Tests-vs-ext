@@ -242,9 +242,9 @@ npx @vscode/vsce package
 
 ## 📚 Documentation
 
-- [Complete Usage Guide](./GUIDE-UTILISATION.md)
-- [Docker Configuration](./GUIDE-UTILISATION.md#-support-docker)
-- [Troubleshooting](./GUIDE-UTILISATION.md#-troubleshooting)
+- [Complete User Guide](./USER-GUIDE.md)
+- [Docker Configuration](./USER-GUIDE.md#-docker-support)
+- [Troubleshooting](./USER-GUIDE.md#-troubleshooting)
 
 ## 🔗 Requirements
 
