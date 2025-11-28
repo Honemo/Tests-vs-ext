@@ -47,12 +47,22 @@ The script will:
 
 ### 1. Open a PHP Project
 ```bash
-# Open your PHP project in VS Code
+# Open your PHP project in VS Code as a workspace
 code /path/to/your/php/project
+
+# OR create a workspace file
+File → Save Workspace As... → project.code-workspace
 ```
 
 ### 2. Configure Test Collections
-Create or update `.vscode/settings.json`:
+
+⚠️ IMPORTANT: This extension ONLY works with workspace settings. User settings are ignored.
+
+1. Open Command Palette: Ctrl+Shift+P
+2. Type: Preferences: Open Workspace Settings
+3. Search for: phpTestCollections
+4. Configure your collections in the UI Or add your configuration in the JSON settings
+
 ```json
 {
   "phpTestCollections.collections": [

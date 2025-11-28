@@ -1,6 +1,7 @@
 # PHP Test Collections Explorer
 
 A powerful VS Code extension for exploring, organizing, and executing PHP test collections with comprehensive Docker support.
+⚠️ IMPORTANT: This extension ONLY works with workspace settings. User settings are ignored.
 
 ![Version](https://img.shields.io/badge/version-0.1.0-blue)
 ![VS Code](https://img.shields.io/badge/VS%20Code-1.105.0+-green)
