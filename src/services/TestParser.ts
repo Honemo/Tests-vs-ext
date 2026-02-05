@@ -56,7 +56,7 @@ export class TestParser {
      * @returns Class name or null if not found
      */
     private extractClassName(content: string): string | null {
-        const classMatch = content.match(/class\s+(\w+)/);
+        const classMatch = content.match(/(?:^|\n)\s*(?:abstract\s+|final\s+)?class\s+(\w+)/);
         return classMatch ? classMatch[1] : null;
     }
 

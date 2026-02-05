@@ -2,7 +2,7 @@
   "name": "tests-vs-extension",
   "displayName": "PHP Test Collections Explorer",
   "description": "VS Code extension for exploring, organizing and running PHP test collections with Docker support",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "license": "MIT",
   "engines": {
     "vscode": "^1.105.0"
@@ -148,10 +148,15 @@
       "properties": {
         "phpTestCollections.logLevel": {
           "type": "string",
-          "enum": ["error", "warn", "info", "debug"],
+          "enum": [
+            "error",
+            "warn",
+            "info",
+            "debug"
+          ],
           "enumDescriptions": [
             "Only show errors",
-            "Show errors and warnings", 
+            "Show errors and warnings",
             "Show errors, warnings and info messages",
             "Show all messages including debug info"
           ],
@@ -190,7 +195,11 @@
                 "description": "Docker image name to use (e.g., 'php:8.2-cli', 'my-app:latest')"
               }
             },
-            "required": ["name", "path", "command"]
+            "required": [
+              "name",
+              "path",
+              "command"
+            ]
           },
           "default": [
             {
