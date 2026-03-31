@@ -211,6 +211,43 @@ vsce package
 npx @vscode/vsce package
 ```
 
+## 🚀 Release Management
+
+The project includes automated CI/CD for seamless releases:
+
+### 🤖 Automated Releases
+```bash
+# Automatic release (uses CHANGELOG.md version)
+./scripts/auto-release.sh
+
+# Or specify version manually
+./scripts/auto-release.sh 1.2.3
+```
+
+**What happens automatically:**
+1. ✅ Validates Git repository state
+2. 📝 Updates `package.json` version  
+3. 🔨 Builds extension locally
+4. 🏷️ Creates Git tag `v1.2.3`
+5. 📤 Pushes tag to GitHub
+6. 🤖 Triggers GitHub Actions CI/CD
+7. 🚀 Creates GitHub release with `.vsix` file
+
+### 📋 Manual Process
+```bash
+# Build package locally
+./scripts/release.sh 1.2.3
+
+# Then create and push tag
+git tag v1.2.3 && git push origin v1.2.3
+```
+
+### 🔍 Monitoring
+- **CI/CD Status**: [GitHub Actions](https://github.com/Honemo/Tests-vs-ext/actions)
+- **Releases**: [GitHub Releases](https://github.com/Honemo/Tests-vs-ext/releases)
+
+For complete release documentation, see [RELEASE-GUIDE.md](./RELEASE-GUIDE.md).
+
 ## 🎯 Use Cases
 
 ✅ **PHP Developers** working with PHPUnit  
