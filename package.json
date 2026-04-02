@@ -1,8 +1,9 @@
 {
   "name": "tests-vs-extension",
+  "publisher": "Honemo",
   "displayName": "PHP Test Collections Explorer",
   "description": "VS Code extension for exploring, organizing and running PHP test collections with Docker support",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "license": "MIT",
   "engines": {
     "vscode": "^1.105.0"

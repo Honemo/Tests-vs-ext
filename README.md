@@ -12,6 +12,7 @@ A powerful VS Code extension for exploring, organizing, and executing PHP test c
 
 - 📁 **Collection Organization** - Group your tests by folders (Unit, Feature, Integration...)
 - 🎯 **Granular Execution** - Run individual tests, entire files, or complete collections
+- 🔗 **Direct Navigation** - Click on any test to open the file at the exact line
 - 🐳 **Native Docker Support** - Seamless execution in containers with automatic command transformation
 - 📊 **Visual Status** - Icons for passed/failed/running tests with detailed error information
 - 🔍 **Error Details** - Complete visualization of PHP failures and errors
@@ -40,7 +41,7 @@ chmod +x install.sh
 ```
 🐳 Docker Integration Tests (5 files)
 ├── ✅ AuthTest.php (3 tests)
-│   ├── ✅ testLogin
+│   ├── ✅ testLogin          👈 Click to jump to test line
 │   ├── ❌ testFailedLogin  
 │   └── ⚪ testLogout
 └── ✅ DatabaseTest.php (2 tests)
@@ -49,6 +50,8 @@ chmod +x install.sh
 ├── ✅ UserTest.php (4 tests)
 └── ...
 ```
+
+**Quick Navigation**: Click any test method to open the file and jump directly to the test's line!
 
 ### Simple Configuration
 ```json
@@ -76,6 +79,7 @@ chmod +x install.sh
 
 | Action | Result | Generated Command |
 |--------|--------|-------------------|
+| 👆 Click test name | Opens file at test line | Direct navigation |
 | ▶️ Individual test | `testLogin` only | `--filter "UserTest::testLogin"` |
 | ▶️ Complete file | All tests in file | `--filter "UserTest"` |  
 | ▶️ Collection | Entire test suite | Full command |

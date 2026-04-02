@@ -73,16 +73,16 @@ export class TestParser {
 
         // Methods starting with 'test'
         const conventionMethods = this.findConventionTestMethods(content);
-        for (const methodName of conventionMethods) {
-            methods.push(this.createTestMethod(methodName, className, filePath, collection));
+        for (const methodInfo of conventionMethods) {
+            methods.push(this.createTestMethod(methodInfo.name, className, filePath, collection, methodInfo.lineNumber));
         }
 
         // Methods with @test annotation
         const annotatedMethods = this.findAnnotatedTestMethods(content);
-        for (const methodName of annotatedMethods) {
+        for (const methodInfo of annotatedMethods) {
             // Avoid duplicates
-            if (!methods.some(m => m.name === methodName)) {
-                methods.push(this.createTestMethod(methodName, className, filePath, collection));
+            if (!methods.some(m => m.name === methodInfo.name)) {
+                methods.push(this.createTestMethod(methodInfo.name, className, filePath, collection, methodInfo.lineNumber));
             }
         }
 
@@ -92,15 +92,16 @@ export class TestParser {
     /**
      * Find methods following the test* convention
      * @param content PHP file content
-     * @returns List of method names
+     * @returns List of method info with names and line numbers
      */
-    private findConventionTestMethods(content: string): string[] {
-        const methods: string[] = [];
+    private findConventionTestMethods(content: string): Array<{name: string, lineNumber: number}> {
+        const methods: Array<{name: string, lineNumber: number}> = [];
         const methodRegex = /(?:\/\*\*[\s\S]*?\*\/\s*)?(?:public\s+)?function\s+(test\w+)\s*\([^)]*\)/g;
         
         let match;
         while ((match = methodRegex.exec(content)) !== null) {
-            methods.push(match[1]);
+            const lineNumber = this.getLineNumber(content, match.index);
+            methods.push({ name: match[1], lineNumber });
         }
 
         return methods;
@@ -109,18 +110,30 @@ export class TestParser {
     /**
      * Find methods with @test annotation
      * @param content PHP file content
-     * @returns List of method names
+     * @returns List of method info with names and line numbers
      */
-    private findAnnotatedTestMethods(content: string): string[] {
-        const methods: string[] = [];
+    private findAnnotatedTestMethods(content: string): Array<{name: string, lineNumber: number}> {
+        const methods: Array<{name: string, lineNumber: number}> = [];
         const annotationRegex = /@test[\s\S]*?public\s+function\s+(\w+)\s*\([^)]*\)/g;
         
         let match;
         while ((match = annotationRegex.exec(content)) !== null) {
-            methods.push(match[1]);
+            const lineNumber = this.getLineNumber(content, match.index);
+            methods.push({ name: match[1], lineNumber });
         }
 
         return methods;
+    }
+
+    /**
+     * Calculate line number from string index
+     * @param content File content
+     * @param index Character index
+     * @returns Line number (1-based)
+     */
+    private getLineNumber(content: string, index: number): number {
+        const lines = content.substring(0, index).split('\n');
+        return lines.length;
     }
 
     /**
@@ -129,13 +142,15 @@ export class TestParser {
      * @param className Class name
      * @param filePath File path
      * @param collection Test collection
+     * @param lineNumber Line number where the method is defined
      * @returns TestMethod object
      */
-    private createTestMethod(name: string, className: string, filePath: string, collection: TestCollection): TestMethod {
+    private createTestMethod(name: string, className: string, filePath: string, collection: TestCollection, lineNumber?: number): TestMethod {
         return {
             name,
             className,
             filePath,
+            lineNumber,
             collection,
             status: TestStatus.Unknown
         };

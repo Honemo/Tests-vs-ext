@@ -25,6 +25,9 @@ export interface TestMethod {
     /** Absolute path to the file containing this test */
     filePath: string;
     
+    /** Line number where the test method is defined (1-based) */
+    lineNumber?: number;
+    
     /** Collection this test belongs to */
     collection: TestCollection;
     

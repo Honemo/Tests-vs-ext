@@ -60,6 +60,15 @@ export class TestItem extends vscode.TreeItem {
             // Context for test methods
             this.contextValue = 'testMethod';
             this.tooltip = `${testMethod.className}::${testMethod.name}`;
+            
+            // Add command to open file at the test method's line
+            if (testMethod.filePath && testMethod.lineNumber) {
+                this.command = {
+                    command: 'tests-vs-extension.openTestFile',
+                    title: 'Open Test',
+                    arguments: [vscode.Uri.file(testMethod.filePath), testMethod.lineNumber]
+                };
+            }
         }
     }
 }
@@ -473,10 +482,17 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
         this.refresh();
     }
 
-    async openTestFile(uri: vscode.Uri): Promise<void> {
+    async openTestFile(uri: vscode.Uri, lineNumber?: number): Promise<void> {
         try {
             const document = await vscode.workspace.openTextDocument(uri);
-            await vscode.window.showTextDocument(document);
+            const editor = await vscode.window.showTextDocument(document);
+            
+            // If line number is provided, navigate to that line
+            if (lineNumber !== undefined && lineNumber > 0) {
+                const position = new vscode.Position(lineNumber - 1, 0); // Convert to 0-based
+                editor.selection = new vscode.Selection(position, position);
+                editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
+            }
         } catch (error) {
             vscode.window.showErrorMessage(`Unable to open file: ${error}`);
         }

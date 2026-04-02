@@ -22,8 +22,15 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	// Command to open a test file
-	const openTestFileDisposable = vscode.commands.registerCommand('tests-vs-extension.openTestFile', (testItem) => {
-		testExplorerProvider.openTestFile(testItem.resourceUri);
+	const openTestFileDisposable = vscode.commands.registerCommand('tests-vs-extension.openTestFile', (uriOrItem, lineNumber) => {
+		// Handle two cases: direct URI call (from test method click) or testItem call (from context menu)
+		if (uriOrItem instanceof vscode.Uri) {
+			// Called with URI and lineNumber (from test method click)
+			testExplorerProvider.openTestFile(uriOrItem, lineNumber);
+		} else if (uriOrItem && uriOrItem.resourceUri) {
+			// Called with testItem (from context menu)
+			testExplorerProvider.openTestFile(uriOrItem.resourceUri);
+		}
 	});
 
 	// Command to configure test collections
