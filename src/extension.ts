@@ -83,6 +83,21 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
+	// Command to run tests for a specific group
+	const runTestGroupDisposable = vscode.commands.registerCommand('tests-vs-extension.runTestGroup', (item: any) => {
+		if (item && item.collection && item.group) {
+			testExplorerProvider.runTestGroup(item.collection, item.group);
+		}
+	});
+
+	// Commands to toggle group-by-tags
+	const enableGroupByTagsDisposable = vscode.commands.registerCommand('tests-vs-extension.enableGroupByTags', () => {
+		testExplorerProvider.setGroupByTags(true);
+	});
+	const disableGroupByTagsDisposable = vscode.commands.registerCommand('tests-vs-extension.disableGroupByTags', () => {
+		testExplorerProvider.setGroupByTags(false);
+	});
+
 	// Add all disposables to the context
 	context.subscriptions.push(
 		forceRefreshDisposable,
@@ -95,6 +110,9 @@ export function activate(context: vscode.ExtensionContext) {
 		showErrorDetailsDisposable,
 		showOutputDisposable,
 		runTestFileDisposable,
+		runTestGroupDisposable,
+		enableGroupByTagsDisposable,
+		disableGroupByTagsDisposable,
 		testExplorerView,
 		testExplorerProvider
 	);

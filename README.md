@@ -3,7 +3,7 @@
 A powerful VS Code extension for exploring, organizing, and executing PHP test collections with comprehensive Docker support.
 ⚠️ IMPORTANT: This extension ONLY works with workspace settings. User settings are ignored.
 
-![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![Version](https://img.shields.io/badge/version-0.1.5-blue)
 ![VS Code](https://img.shields.io/badge/VS%20Code-1.105.0+-green)
 ![PHP](https://img.shields.io/badge/PHP-PHPUnit-purple)
 ![Docker](https://img.shields.io/badge/Docker-Supported-blue)
@@ -11,14 +11,15 @@ A powerful VS Code extension for exploring, organizing, and executing PHP test c
 ## ✨ Features
 
 - 📁 **Collection Organization** - Group your tests by folders (Unit, Feature, Integration...)
-- 🎯 **Granular Execution** - Run individual tests, entire files, or complete collections
+- 🏷️ **Group by Tags** - Accordion view grouped by PHPUnit `@group` annotations, with one-click toggle
+- 🎯 **Granular Execution** - Run individual tests, files, groups, or complete collections
 - 🔗 **Direct Navigation** - Click on any test to open the file at the exact line
 - 🐳 **Native Docker Support** - Seamless execution in containers with automatic command transformation
 - 📊 **Visual Status** - Icons for passed/failed/running tests with detailed error information
 - 🔍 **Error Details** - Complete visualization of PHP failures and errors
 - ⚡ **Smart Cache** - Optimized scanning with automatic updates
 - 📋 **Complete Logging** - All commands tracked in dedicated Output tab
-- �️ **Terminal Management** - Intelligent terminal reuse and cleanup
+- 🖥️ **Terminal Management** - Intelligent terminal reuse and cleanup
 
 ## 🚀 Quick Start
 
@@ -38,17 +39,30 @@ chmod +x install.sh
 ## 🎮 Usage
 
 ### Intuitive Tree View
-```
-🐳 Docker Integration Tests (5 files)
-├── ✅ AuthTest.php (3 tests)
-│   ├── ✅ testLogin          👈 Click to jump to test line
-│   ├── ❌ testFailedLogin  
-│   └── ⚪ testLogout
-└── ✅ DatabaseTest.php (2 tests)
 
-📚 Unit Tests (8 files)
-├── ✅ UserTest.php (4 tests)
-└── ...
+**Default: grouped by `@group` tags**
+```
+📚 Unit Tests
+├── 🏷️ auth                     ▶ Run group
+│   └── UserTest.php
+│       ├── ✅ testLogin         👈 Click to jump to test line
+│       └── ❌ testFailedLogin
+├── 🏷️ database                  ▶ Run group
+│   └── DatabaseTest.php
+│       └── ⚪ testQuery
+└── 🏷️ Ungrouped                 ▶ Run group
+    └── GenericTest.php
+        └── ⚪ testSomething
+```
+
+**Toggle off (`$(list-tree)` button): flat file view**
+```
+📚 Unit Tests
+├── UserTest.php
+│   ├── ✅ testLogin
+│   └── ❌ testFailedLogin
+└── DatabaseTest.php
+    └── ⚪ testQuery
 ```
 
 **Quick Navigation**: Click any test method to open the file and jump directly to the test's line!
@@ -81,7 +95,8 @@ chmod +x install.sh
 |--------|--------|-------------------|
 | 👆 Click test name | Opens file at test line | Direct navigation |
 | ▶️ Individual test | `testLogin` only | `--filter "UserTest::testLogin"` |
-| ▶️ Complete file | All tests in file | `--filter "UserTest"` |  
+| ▶️ Complete file | All tests in file | `--filter "UserTest"` |
+| ▶️ Group | All tests in `@group` | `--group "auth"` |
 | ▶️ Collection | Entire test suite | Full command |
 
 ## 🐳 Docker Support
@@ -101,6 +116,35 @@ Automatic command transformation:
 | ⚪ | Unknown | Not tested |
 
 ## 🔧 Advanced Configuration
+
+### Group by Tags
+
+The tree view groups tests by their PHPUnit `@group` annotations by default. Add `@group` tags to your test methods:
+
+```php
+/**
+ * @test
+ * @group auth
+ */
+public function testLogin() { ... }
+
+/**
+ * @group database
+ * @group slow
+ */
+public function testComplexQuery() { ... }
+```
+
+The toolbar shows two states:
+- **`$(tag)` active** — grouping ON, click to disable
+- **`$(list-tree)` inactive** — grouping OFF, click to enable
+
+Persist the preference in your workspace settings:
+```json
+{
+  "phpTestCollections.groupTestsByGroups": true
+}
+```
 
 ### Test File Detection: Pattern vs. Inheritance
 

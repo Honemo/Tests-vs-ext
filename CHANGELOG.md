@@ -5,6 +5,24 @@ All notable changes to the "PHP Test Collections Explorer" extension will be doc
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] - 2026-06-25
+
+### ✨ New Features
+- **Group by Tags**: Tests can now be grouped by their PHPUnit `@group` annotations in the tree view
+  - New accordion level: Collection → Group → File → Method
+  - Tests without `@group` are collected under an "Ungrouped" section
+  - One test with multiple `@group` tags appears in each matching group
+- **Toggle Group by Tags**: New button in the explorer toolbar to enable/disable grouping on the fly
+  - `$(tag)` icon when grouping is active — click to disable
+  - `$(list-tree)` icon when grouping is inactive — click to enable
+  - State persisted in workspace settings (`phpTestCollections.groupTestsByGroups`)
+- **Run by Group**: New ▶ inline button on each group item to run all tests in that group
+  - Executes `phpunit --group "tagName"` via the collection's configured command
+  - Fully supports Docker (`docker exec … phpunit --group "tagName"`)
+
+### ⚙️ Configuration
+- **`phpTestCollections.groupTestsByGroups`** (boolean, default `true`): controls whether the tree groups tests by `@group` annotations
+
 ## [0.1.4] - 2026-06-24
 
 ### ✨ New Features

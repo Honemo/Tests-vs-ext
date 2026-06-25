@@ -48,6 +48,30 @@ export class TestRunner {
     }
 
     /**
+     * Execute all tests belonging to a PHPUnit @group
+     */
+    async runTestGroup(collection: TestCollection, group: string): Promise<void> {
+        try {
+            if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
+                vscode.window.showErrorMessage('No workspace opened');
+                return;
+            }
+
+            const workspaceFolder = vscode.workspace.workspaceFolders[0];
+            const groupCommand = `${collection.command} --group "${group}"`;
+            const finalCommand = this.buildDockerCommand(collection, groupCommand, workspaceFolder.uri.fsPath);
+
+            this.logger.logCommand(`Executing group "${group}" in collection: ${collection.name}`, finalCommand);
+            this.executeCollectionWithoutCapture(finalCommand, workspaceFolder.uri.fsPath, collection);
+
+            const dockerInfo = collection.useDocker ? ` 🐳 (Docker: ${collection.dockerImage})` : '';
+            vscode.window.showInformationMessage(`Running group "${group}" in ${collection.name}${dockerInfo}`);
+        } catch (error) {
+            vscode.window.showErrorMessage(`Error: ${error}`);
+        }
+    }
+
+    /**
      * Execute an individual test with output capture for result parsing
      */
     async runTestMethod(testMethod: TestMethod, onTestUpdate?: (testMethod: TestMethod) => void): Promise<void> {

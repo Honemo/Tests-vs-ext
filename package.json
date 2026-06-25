@@ -3,7 +3,7 @@
   "publisher": "Honemo",
   "displayName": "PHP Test Collections Explorer",
   "description": "VS Code extension for exploring, organizing and running PHP test collections with Docker support",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "license": "MIT",
   "engines": {
     "vscode": "^1.105.0"
@@ -57,6 +57,21 @@
         "icon": "$(add)"
       },
       {
+        "command": "tests-vs-extension.runTestGroup",
+        "title": "Run Group",
+        "icon": "$(play)"
+      },
+      {
+        "command": "tests-vs-extension.enableGroupByTags",
+        "title": "Enable Group by Tags",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "tests-vs-extension.disableGroupByTags",
+        "title": "Disable Group by Tags",
+        "icon": "$(tag)"
+      },
+      {
         "command": "tests-vs-extension.runSingleTest",
         "title": "Run Test",
         "icon": "$(play)"
@@ -103,6 +118,16 @@
           "group": "navigation"
         },
         {
+          "command": "tests-vs-extension.enableGroupByTags",
+          "when": "view == testExplorer && !phpTestCollections.groupByTagsEnabled",
+          "group": "navigation"
+        },
+        {
+          "command": "tests-vs-extension.disableGroupByTags",
+          "when": "view == testExplorer && phpTestCollections.groupByTagsEnabled",
+          "group": "navigation"
+        },
+        {
           "command": "tests-vs-extension.showOutput",
           "when": "view == testExplorer",
           "group": "navigation"
@@ -129,6 +154,11 @@
           "group": "inline"
         },
         {
+          "command": "tests-vs-extension.runTestGroup",
+          "when": "view == testExplorer && viewItem == testGroup",
+          "group": "inline"
+        },
+        {
           "command": "tests-vs-extension.runSingleTest",
           "when": "view == testExplorer && viewItem == testMethod",
           "group": "inline"
@@ -147,6 +177,11 @@
     "configuration": {
       "title": "PHP Test Collections",
       "properties": {
+        "phpTestCollections.groupTestsByGroups": {
+          "type": "boolean",
+          "default": true,
+          "description": "Group tests by @group annotations (PHPUnit). When disabled, reverts to the original file-based hierarchy"
+        },
         "phpTestCollections.logLevel": {
           "type": "string",
           "enum": [

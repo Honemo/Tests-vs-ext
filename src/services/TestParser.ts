@@ -74,7 +74,8 @@ export class TestParser {
         // Methods starting with 'test'
         const conventionMethods = this.findConventionTestMethods(content);
         for (const methodInfo of conventionMethods) {
-            methods.push(this.createTestMethod(methodInfo.name, className, filePath, collection, methodInfo.lineNumber));
+            const groups = this.extractGroupsFromComments(content, methodInfo.name);
+            methods.push(this.createTestMethod(methodInfo.name, className, filePath, collection, methodInfo.lineNumber, groups));
         }
 
         // Methods with @test annotation
@@ -82,7 +83,8 @@ export class TestParser {
         for (const methodInfo of annotatedMethods) {
             // Avoid duplicates
             if (!methods.some(m => m.name === methodInfo.name)) {
-                methods.push(this.createTestMethod(methodInfo.name, className, filePath, collection, methodInfo.lineNumber));
+                const groups = this.extractGroupsFromComments(content, methodInfo.name);
+                methods.push(this.createTestMethod(methodInfo.name, className, filePath, collection, methodInfo.lineNumber, groups));
             }
         }
 
@@ -143,17 +145,51 @@ export class TestParser {
      * @param filePath File path
      * @param collection Test collection
      * @param lineNumber Line number where the method is defined
+     * @param groups PHPUnit @group annotations found in method comments
      * @returns TestMethod object
      */
-    private createTestMethod(name: string, className: string, filePath: string, collection: TestCollection, lineNumber?: number): TestMethod {
+    private createTestMethod(name: string, className: string, filePath: string, collection: TestCollection, lineNumber?: number, groups?: string[]): TestMethod {
         return {
             name,
             className,
             filePath,
             lineNumber,
             collection,
-            status: TestStatus.Unknown
+            status: TestStatus.Unknown,
+            groups: groups && groups.length > 0 ? groups : undefined
         };
+    }
+
+    /**
+     * Extract @group annotations from a test method's comments
+     * @param content PHP file content
+     * @param methodName Method name to search for
+     * @returns Array of group names found in the method's docblock
+     */
+    private extractGroupsFromComments(content: string, methodName: string): string[] {
+        const groups: string[] = [];
+
+        // Find the docblock preceding the method
+        // Match: /** ... @group name ... */ public function methodName
+        const docblockRegex = new RegExp(
+            `/\\*\\*[\\s\\S]*?(@group\\s+(\\w+))[\\s\\S]*?\\*\\/\\s*(?:public\\s+)?function\\s+${methodName}\\s*\\(`,
+            'g'
+        );
+
+        let match;
+        while ((match = docblockRegex.exec(content)) !== null) {
+            // Extract group names from all @group tags in this docblock
+            const docblock = match[0];
+            const groupRegex = /@group\s+(\w+)/g;
+            let groupMatch;
+            while ((groupMatch = groupRegex.exec(docblock)) !== null) {
+                if (!groups.includes(groupMatch[1])) {
+                    groups.push(groupMatch[1]);
+                }
+            }
+        }
+
+        return groups;
     }
 
     /**

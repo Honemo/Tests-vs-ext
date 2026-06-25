@@ -18,28 +18,31 @@ export enum TestStatus {
 export interface TestMethod {
     /** Test method name */
     name: string;
-    
+
     /** Name of the class containing this test */
     className: string;
-    
+
     /** Absolute path to the file containing this test */
     filePath: string;
-    
+
     /** Line number where the test method is defined (1-based) */
     lineNumber?: number;
-    
+
     /** Collection this test belongs to */
     collection: TestCollection;
-    
+
     /** Current test status */
     status?: TestStatus;
-    
+
     /** Date of last execution */
     lastRun?: Date;
-    
+
     /** Short error message in case of failure */
     errorMessage?: string;
-    
+
     /** Complete error details (stack trace, PHPUnit output) */
     failureDetails?: string;
+
+    /** PHPUnit @group annotations found in test method comments */
+    groups?: string[];
 }

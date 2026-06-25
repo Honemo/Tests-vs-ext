@@ -25,17 +25,27 @@ export class TestItem extends vscode.TreeItem {
         public readonly label: string,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
         public readonly resourceUri?: vscode.Uri,
-        public readonly testType?: 'file' | 'collection' | 'method',
+        public readonly testType?: 'file' | 'collection' | 'method' | 'group',
         public readonly collection?: TestCollection,
         public readonly testMethod?: TestMethod,
-        public readonly testFile?: TestFile
+        public readonly testFile?: TestFile,
+        public readonly group?: string
     ) {
         super(label, collapsibleState);
-        
+
         if (testType === 'collection') {
             // Icon for collections
             this.iconPath = new vscode.ThemeIcon('folder');
             this.contextValue = 'testCollection';
+            this.command = undefined;
+        } else if (testType === 'group') {
+            // Icon for test groups
+            if (label === 'Ungrouped') {
+                this.iconPath = new vscode.ThemeIcon('circle-outline');
+            } else {
+                this.iconPath = new vscode.ThemeIcon('tag', new vscode.ThemeColor('charts.yellow'));
+            }
+            this.contextValue = 'testGroup';
             this.command = undefined;
         } else if (testType === 'file') {
             // Icon for test files
@@ -96,7 +106,11 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
         this.testParser = new TestParser(this.logger);
         this.fileWatcher = new FileWatcher(this.logger);
         this.logger.log('🚀 PHP Test Collections extension initialized');
-        
+
+        // Initialize context key for group-by-tags toggle button
+        const initialGroupByTags = vscode.workspace.getConfiguration('phpTestCollections').get<boolean>('groupTestsByGroups', true);
+        vscode.commands.executeCommand('setContext', 'phpTestCollections.groupByTagsEnabled', initialGroupByTags);
+
         // Load cache from service
         const loadedCache = this.cacheService.loadCache();
         for (const [key, value] of loadedCache) {
@@ -375,13 +389,21 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
                 collection
             ));
         } else if (element.testType === 'collection' && element.collection) {
-            // Collection: return test files
-            return await this.getCollectionFiles(element.collection);
+            // Collection: return groups (if enabled) or files directly
+            const config = vscode.workspace.getConfiguration('phpTestCollections');
+            const groupByGroups = config.get<boolean>('groupTestsByGroups', true);
+            if (groupByGroups) {
+                return this.getCollectionGroups(element.collection);
+            }
+            return this.getFilesForGroup(element.collection, undefined);
+        } else if (element.testType === 'group' && element.collection && element.group !== undefined) {
+            // Group: return files belonging to this group
+            return this.getFilesForGroup(element.collection, element.group);
         } else if (element.testType === 'file' && element.collection && element.resourceUri) {
-            // File: return test methods
-            return await this.getFileMethods(element.collection, element.resourceUri);
+            // File: return methods filtered by parent group if present
+            return this.getMethodsForGroupAndFile(element.collection, element.group, element.resourceUri);
         }
-        
+
         return [];
     }
 
@@ -402,47 +424,83 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
         this.logger.logDebug(`✅ Collections loaded. Cache contains: ${this.cachedCollections.size} collections`);
     }
 
-    private async getCollectionFiles(collection: TestCollection): Promise<TestItem[]> {
-        this.logger.logDebug(`📁 Getting files for collection: ${collection.name}`);
+    private getCollectionGroups(collection: TestCollection): TestItem[] {
         const cached = this.cachedCollections.get(collection.name);
         if (!cached) return [];
 
-        // Group methods by file
-        const fileGroups = new Map<string, TestMethod[]>();
+        const groups = new Set<string>();
         for (const method of cached.methods) {
-            const filePath = method.filePath;
-            if (!fileGroups.has(filePath)) {
-                fileGroups.set(filePath, []);
+            if (method.groups && method.groups.length > 0) {
+                method.groups.forEach(g => groups.add(g));
+            } else {
+                groups.add('Ungrouped');
             }
-            fileGroups.get(filePath)!.push(method);
         }
 
-        // Create file items
-        const fileItems: TestItem[] = [];
-        for (const [filePath, methods] of fileGroups) {
-            const fileName = path.basename(filePath);
-            const fileUri = vscode.Uri.file(filePath);
-            
-            fileItems.push(new TestItem(
-                fileName,
-                vscode.TreeItemCollapsibleState.Collapsed,
-                fileUri,
-                'file',
-                collection
-            ));
-        }
-        
-        return fileItems.sort((a, b) => a.label.localeCompare(b.label));
+        const sorted = Array.from(groups).sort((a, b) => {
+            if (a === 'Ungrouped') return 1;
+            if (b === 'Ungrouped') return -1;
+            return a.localeCompare(b);
+        });
+
+        return sorted.map(group => new TestItem(
+            group,
+            vscode.TreeItemCollapsibleState.Collapsed,
+            undefined,
+            'group',
+            collection,
+            undefined,
+            undefined,
+            group
+        ));
     }
 
-    private async getFileMethods(collection: TestCollection, fileUri: vscode.Uri): Promise<TestItem[]> {
+    private getFilesForGroup(collection: TestCollection, group: string | undefined): TestItem[] {
         const cached = this.cachedCollections.get(collection.name);
         if (!cached) return [];
 
-        // Filter methods for this file
-        const fileMethods = cached.methods.filter(method => method.filePath === fileUri.fsPath);
-        
-        return fileMethods.map(method => new TestItem(
+        const fileSet = new Set<string>();
+        for (const method of cached.methods) {
+            if (group === undefined) {
+                // No group filter: include all files
+                fileSet.add(method.filePath);
+            } else {
+                const methodGroups = method.groups || [];
+                const isUngrouped = group === 'Ungrouped' && methodGroups.length === 0;
+                if (isUngrouped || methodGroups.includes(group)) {
+                    fileSet.add(method.filePath);
+                }
+            }
+        }
+
+        return Array.from(fileSet)
+            .map(filePath => new TestItem(
+                path.basename(filePath),
+                vscode.TreeItemCollapsibleState.Collapsed,
+                vscode.Uri.file(filePath),
+                'file',
+                collection,
+                undefined,
+                undefined,
+                group
+            ))
+            .sort((a, b) => a.label.localeCompare(b.label));
+    }
+
+    private getMethodsForGroupAndFile(collection: TestCollection, group: string | undefined, fileUri: vscode.Uri): TestItem[] {
+        const cached = this.cachedCollections.get(collection.name);
+        if (!cached) return [];
+
+        const fileMethods = cached.methods.filter(m => m.filePath === fileUri.fsPath);
+
+        const filtered = group === undefined
+            ? fileMethods
+            : fileMethods.filter(m => {
+                const mg = m.groups || [];
+                return group === 'Ungrouped' ? mg.length === 0 : mg.includes(group);
+            });
+
+        return filtered.map(method => new TestItem(
             method.name,
             vscode.TreeItemCollapsibleState.None,
             undefined,
@@ -608,6 +666,10 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
     // Methods delegated to TestRunner
     async runTestCollection(collection: TestCollection): Promise<void> {
         await this.testRunner.runTestCollection(collection);
+    }
+
+    async runTestGroup(collection: TestCollection, group: string): Promise<void> {
+        await this.testRunner.runTestGroup(collection, group);
     }
 
     async runSingleTest(testMethod: TestMethod): Promise<void> {
@@ -791,6 +853,13 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
             this.logger.logError('Error adding collection', error instanceof Error ? error : new Error(String(error)));
             vscode.window.showErrorMessage('Unable to add collection');
         }
+    }
+
+    async setGroupByTags(enabled: boolean): Promise<void> {
+        const config = vscode.workspace.getConfiguration('phpTestCollections');
+        await config.update('groupTestsByGroups', enabled, vscode.ConfigurationTarget.Workspace);
+        await vscode.commands.executeCommand('setContext', 'phpTestCollections.groupByTagsEnabled', enabled);
+        this.refresh();
     }
 
     dispose(): void {
