@@ -102,6 +102,42 @@ Automatic command transformation:
 
 ## 🔧 Advanced Configuration
 
+### Test File Detection: Pattern vs. Inheritance
+
+By default, the extension detects test files by filename pattern (e.g., `*Test.php`). For more flexible detection, enable **inheritance-based detection** using `testBaseClasses`:
+
+```json
+{
+  "phpTestCollections.collections": [
+    {
+      "name": "Unit Tests",
+      "path": "tests/Unit",
+      "command": "vendor/bin/phpunit tests/Unit",
+      "pattern": "*Test.php",
+      "testBaseClasses": ["TestCase", "CustomBaseTest"]
+    }
+  ]
+}
+```
+
+**How it works:**
+- ✅ Files matching the pattern are detected first (optimized)
+- ✅ Files NOT matching the pattern are scanned for inheritance from specified base classes
+- ✅ Both pattern and inheritance results are merged (no duplicates)
+- ✅ Default frameworks (PHPUnit, Laravel, Symfony) are auto-detected
+
+**Examples:**
+```php
+// Detected by pattern
+class UserTest extends TestCase { }
+
+// Detected by inheritance (even without "Test" in filename!)
+class GetSubscribersFlow extends TestCase { }
+
+// Detected by inheritance from custom base
+class PaymentProcessing extends CustomBaseTest { }
+```
+
 ### Laravel Project
 ```json
 {

@@ -114,6 +114,7 @@ File → Save Workspace As... → project.code-workspace
 | `pattern` | string | ❌ | File pattern (default: `**/*Test.php`) |
 | `useDocker` | boolean | ❌ | Enable Docker execution (default: `false`) |
 | `dockerImage` | string | ❌ | Docker container name (required if `useDocker=true`) |
+| `testBaseClasses` | string[] | ❌ | Base class names for inheritance detection (e.g., `["TestCase", "CustomBaseTest"]`) |
 
 ### Project Examples
 
@@ -173,6 +174,86 @@ File → Save Workspace As... → project.code-workspace
       "name": "API Tests", 
       "path": "tests/api",
       "command": "./vendor/bin/phpunit tests/api --coverage-clover=coverage.xml"
+    }
+  ]
+}
+```
+
+### Test File Detection: Pattern vs. Inheritance
+
+By default, the extension detects test files by **filename pattern** (e.g., `*Test.php`). For more flexible detection, you can enable **inheritance-based detection** using the `testBaseClasses` parameter.
+
+#### When to Use Inheritance Detection
+
+Use `testBaseClasses` when:
+- ✅ Your test files don't follow strict naming conventions
+- ✅ You have tests with flexible naming (e.g., `PaymentFlow.php`, `UserBehavior.php`)
+- ✅ You want to detect tests solely by class inheritance
+- ✅ You work with multiple frameworks in one project
+
+#### Configuration Example
+```json
+{
+  "phpTestCollections.collections": [
+    {
+      "name": "Unit Tests",
+      "path": "tests/Unit",
+      "command": "vendor/bin/phpunit tests/Unit",
+      "pattern": "*Test.php",
+      "testBaseClasses": ["TestCase", "CustomBaseTest"]
+    }
+  ]
+}
+```
+
+#### How It Works
+
+1. **First**: Files matching the `pattern` are discovered (optimized)
+2. **Then**: Files NOT matching the pattern are scanned for inheritance
+3. **Finally**: Both results are merged (duplicates removed)
+4. **Auto-detect**: If `testBaseClasses` is not specified, common frameworks are auto-detected:
+   - PHPUnit: `PHPUnit\Framework\TestCase`
+   - Laravel: `Tests\TestCase`
+   - Symfony: `Symfony\Bundle\FrameworkBundle\Test\KernelTestCase`
+
+#### Concrete Examples
+
+```php
+// File: tests/Unit/UserTest.php
+class UserTest extends TestCase { }
+// ✅ Detected by pattern (*Test.php)
+
+// File: tests/Feature/UserBehavior.php
+class UserBehavior extends TestCase { }
+// ✅ Detected by inheritance (even without "Test" in filename!)
+
+// File: tests/Custom/PaymentProcessing.php
+class PaymentProcessing extends CustomBaseTest { }
+// ✅ Detected by inheritance when testBaseClasses includes "CustomBaseTest"
+
+// File: tests/src/HelperTest.php
+class HelperTest { }
+// ❌ NOT detected (no pattern match AND no inheritance)
+```
+
+#### Mixed Configuration Example
+
+```json
+{
+  "phpTestCollections.collections": [
+    {
+      "name": "PHPUnit Tests",
+      "path": "tests",
+      "command": "vendor/bin/phpunit tests",
+      "pattern": "*Test.php",
+      "testBaseClasses": ["TestCase"]  // Detect both patterns AND inheritance
+    },
+    {
+      "name": "Custom Framework",
+      "path": "tests-custom",
+      "command": "vendor/bin/phpunit tests-custom",
+      "pattern": "*.php",  // Very broad pattern
+      "testBaseClasses": ["CustomTestBase", "App\\Testing\\TestCase"]  // Rely more on inheritance
     }
   ]
 }

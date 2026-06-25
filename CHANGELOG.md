@@ -5,6 +5,26 @@ All notable changes to the "PHP Test Collections Explorer" extension will be doc
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### ✨ New Features
+- **Inheritance-Based Test Detection**: New `testBaseClasses` parameter for flexible test file discovery
+  - Detect test files by class inheritance instead of just filename patterns
+  - Support custom test base classes (e.g., `TestCase`, `CustomBaseTest`)
+  - Auto-detect common frameworks: PHPUnit, Laravel, Symfony
+  - Combine pattern matching with inheritance detection in one collection
+
+### 🐛 Bug Fixes
+- **Test Icon Updates**: Fixed issue where test icons wouldn't update when inheritance detection was enabled
+  - Test status now preserved during cache reload cycles
+  - Icons update correctly when tests execute
+  - Resolved status reset on tree view refresh
+
+### 📚 Documentation
+- **README**: Added comprehensive section on inheritance-based detection with examples
+- **USER-GUIDE**: Added detailed guide for `testBaseClasses` configuration with concrete examples
+- **CLAUDE.md**: Updated architecture documentation with new detection features
+
 ## [0.1.2] - 2026-02-05
 
 ### 🐛 Bug Fixes
