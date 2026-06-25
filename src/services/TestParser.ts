@@ -180,27 +180,121 @@ export class TestParser {
 
     /**
      * Validate PHP test file format
+     * Supports detection by: (1) pattern match + test methods, or (2) inheritance from test base class
      * @param filePath File path
+     * @param testBaseClasses Optional custom test base class names for detection
      * @returns True if the file appears to be a valid PHP test file
      */
-    isValidPhpTestFile(filePath: string): boolean {
+    isValidPhpTestFile(filePath: string, testBaseClasses?: string[]): boolean {
         try {
             if (!filePath.endsWith('.php')) {
                 return false;
             }
 
             const content = fs.readFileSync(filePath, 'utf8');
-            
+
             // Check for class presence
             const hasClass = /class\s+\w+/.test(content);
-            
-            // Check for test methods presence
+            if (!hasClass) {
+                return false;
+            }
+
+            // Check for test methods presence (existing logic)
             const hasTestMethods = /(?:function\s+test\w+|@test[\s\S]*?function)/.test(content);
-            
-            return hasClass && hasTestMethods;
+            if (hasTestMethods) {
+                this.logger.logDebug(`✅ File detected as test (method convention): ${filePath}`);
+                return true;
+            }
+
+            // Check for inheritance from test base class (new logic)
+            const parentClass = this.extractParentClassName(content);
+            if (parentClass) {
+                const allBases = this.getAllTestBaseClasses(testBaseClasses);
+                if (this.isTestBaseClass(parentClass, allBases)) {
+                    this.logger.logDebug(`✅ File detected as test (class inheritance from ${parentClass}): ${filePath}`);
+                    return true;
+                }
+            }
+
+            return false;
         } catch (error) {
             this.logger.logWarning(`⚠️ Unable to validate file ${filePath}: ${error}`);
             return false;
         }
+    }
+
+    /**
+     * Extract the parent class name from PHP content
+     * Supports both short names (TestCase) and fully qualified names (\PHPUnit\Framework\TestCase)
+     * @param content PHP file content
+     * @returns Parent class name or null if not found
+     */
+    private extractParentClassName(content: string): string | null {
+        // Match "extends <ClassName>" after class definition
+        // Supports: extends TestCase, extends \PHPUnit\Framework\TestCase, extends App\Testing\BaseTest
+        const parentMatch = content.match(/class\s+\w+\s+extends\s+(\\?[\w\\]+)/);
+        return parentMatch ? parentMatch[1] : null;
+    }
+
+    /**
+     * Get all test base classes: defaults + custom ones
+     * @param customClasses Optional custom test base classes
+     * @returns Array of all test base class names to check
+     */
+    private getAllTestBaseClasses(customClasses?: string[]): string[] {
+        const defaultBases = this.getDefaultTestBaseClasses();
+        if (customClasses && customClasses.length > 0) {
+            return [...defaultBases, ...customClasses];
+        }
+        return defaultBases;
+    }
+
+    /**
+     * Get default test base classes for common frameworks
+     * @returns Array of default test base class names
+     */
+    private getDefaultTestBaseClasses(): string[] {
+        return [
+            'testcase',  // Generic / Laravel / Symfony short form (case-insensitive)
+            'phunit\\framework\\testcase',  // PHPUnit namespace
+            'framework\\testcase',  // Common short form
+            'symfony\\bundle\\frameworkbundle\\test\\kerneltestcase',  // Symfony
+            'tests\\testcase',  // Laravel convention
+        ];
+    }
+
+    /**
+     * Check if an extracted parent class name matches any of the test base classes
+     * @param extractedParent The parent class name extracted from code
+     * @param testBaseClasses Array of test base classes to match against
+     * @returns True if the parent class is a recognized test base class
+     */
+    private isTestBaseClass(extractedParent: string, testBaseClasses: string[]): boolean {
+        const normalizedExtracted = this.normalizeClassName(extractedParent);
+
+        for (const baseClass of testBaseClasses) {
+            const normalizedBase = this.normalizeClassName(baseClass);
+            if (normalizedExtracted === normalizedBase) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Normalize class name for comparison
+     * Removes leading backslash and converts to lowercase for case-insensitive matching
+     * @param className Class name (possibly with namespace)
+     * @returns Normalized class name (lowercase, no leading backslash)
+     */
+    private normalizeClassName(className: string): string {
+        // Remove leading backslash (PHP namespace)
+        let normalized = className.startsWith('\\') ?
+            className.slice(1) :
+            className;
+
+        // Convert to lowercase for case-insensitive comparison
+        return normalized.toLowerCase();
     }
 }

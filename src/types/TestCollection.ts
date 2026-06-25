@@ -5,19 +5,22 @@
 export interface TestCollection {
     /** Display name of the collection */
     name: string;
-    
+
     /** Path to the folder containing tests */
     path: string;
-    
+
     /** PHPUnit command to execute for this collection */
     command: string;
-    
+
     /** File pattern to scan (default *Test.php) */
     pattern?: string;
-    
+
     /** If true, tests run in a Docker container */
     useDocker?: boolean;
-    
+
     /** Name of Docker image/container to use */
     dockerImage?: string;
+
+    /** Custom test base class names for detection (e.g., TestCase, CustomBaseTest) */
+    testBaseClasses?: string[];
 }

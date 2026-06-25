@@ -194,6 +194,14 @@
               "dockerImage": {
                 "type": "string",
                 "description": "Docker image name to use (e.g., 'php:8.2-cli', 'my-app:latest')"
+              },
+              "testBaseClasses": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Custom test base class names for inheritance-based detection (e.g., 'TestCase', 'App\\\\Testing\\\\BaseTest')",
+                "default": []
               }
             },
             "required": [

@@ -224,21 +224,131 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
                 .replace(/\*/g, '[^/]*') // * -> [^/]*
                 .replace(/\?/g, '.')     // ? -> .
         );
-        
+
         return regex.test(filename);
+    }
+
+    private async getPhpFilesByInheritance(dirPath: string, excludePattern: string, testBaseClasses: string[]): Promise<vscode.Uri[]> {
+        try {
+            this.logger.logDebug(`🔍 Scanning for PHP files by inheritance in: ${dirPath}`);
+            const files: vscode.Uri[] = [];
+            const excludeSet = new Set<string>();
+
+            // Collect already-found files by pattern to avoid duplicates
+            const patternFiles = this.getPhpTestFiles(dirPath, excludePattern);
+            for (const file of patternFiles) {
+                excludeSet.add(file.fsPath);
+            }
+
+            // Recursively find all PHP files and check their inheritance
+            const allPhpFiles = await this.getAllPhpFiles(dirPath);
+            let checkedCount = 0;
+            for (const phpFile of allPhpFiles) {
+                // Skip files already found by pattern
+                if (excludeSet.has(phpFile.fsPath)) {
+                    continue;
+                }
+
+                // Verify file exists before checking
+                if (!fs.existsSync(phpFile.fsPath)) {
+                    this.logger.logWarning(`⚠️ File no longer exists: ${phpFile.fsPath}`);
+                    continue;
+                }
+
+                // Check if file is a valid test file by inheritance
+                if (this.testParser.isValidPhpTestFile(phpFile.fsPath, testBaseClasses)) {
+                    files.push(phpFile);
+                    this.logger.logDebug(`✅ Found test file by inheritance: ${path.basename(phpFile.fsPath)}`);
+                }
+
+                checkedCount++;
+                // Prevent scanning too many files (safety limit)
+                if (checkedCount > 10000) {
+                    this.logger.logWarning(`⚠️ Inheritance scanning stopped: more than 10000 PHP files to check`);
+                    break;
+                }
+            }
+
+            this.logger.logDebug(`✅ Found ${files.length} additional PHP files by inheritance (checked ${checkedCount} files)`);
+            return files;
+        } catch (error) {
+            this.logger.logError('Error reading PHP files by inheritance', error instanceof Error ? error : new Error(String(error)));
+            return [];
+        }
+    }
+
+    private async getAllPhpFiles(dirPath: string): Promise<vscode.Uri[]> {
+        try {
+            const files: vscode.Uri[] = [];
+
+            if (fs.existsSync(dirPath)) {
+                const items = fs.readdirSync(dirPath);
+
+                for (const item of items) {
+                    const itemPath = path.join(dirPath, item);
+                    const stat = fs.statSync(itemPath);
+
+                    if (stat.isDirectory()) {
+                        // Recursion in subdirectories
+                        files.push(...await this.getAllPhpFiles(itemPath));
+                    } else if (stat.isFile() && item.endsWith('.php')) {
+                        // Add all PHP files
+                        files.push(vscode.Uri.file(itemPath));
+                    }
+                }
+            }
+
+            return files;
+        } catch (error) {
+            this.logger.logError('Error reading all PHP files', error instanceof Error ? error : new Error(String(error)));
+            return [];
+        }
+    }
+
+    private mergeUniqueFiles(filesA: vscode.Uri[], filesB: vscode.Uri[]): vscode.Uri[] {
+        this.logger.logDebug(`🔗 mergeUniqueFiles: ${filesA.length} pattern files + ${filesB.length} inheritance files`);
+        const pathSet = new Set<string>();
+        const result: vscode.Uri[] = [];
+
+        for (const file of filesA) {
+            pathSet.add(file.fsPath);
+            result.push(file);
+        }
+
+        let addedFromB = 0;
+        for (const file of filesB) {
+            if (!pathSet.has(file.fsPath)) {
+                pathSet.add(file.fsPath);
+                result.push(file);
+                addedFromB++;
+            }
+        }
+
+        this.logger.logDebug(`🔗 Merge result: ${result.length} total (added ${addedFromB} from inheritance)`);
+        return result;
     }
 
     updateTestStatus(collectionName: string, className: string, methodName: string, status: TestStatus, errorMessage?: string, failureDetails?: string): void {
         this.logger.logInfo(`🔄 Updating test status: ${collectionName} :: ${className} :: ${methodName} => ${status}`);
         const cached = this.cachedCollections.get(collectionName);
-        if (!cached) return;
+        if (!cached) {
+            this.logger.logWarning(`⚠️ Collection NOT found in cache: ${collectionName}`);
+            return;
+        }
 
-        const method = cached.methods.find(m => 
-            m.className === className && 
-            m.name === methodName
-        );
+        this.logger.logDebug(`   📊 Searching in ${cached.methods.length} methods`);
+        this.logger.logDebug(`   🔎 Looking for: className="${className}", methodName="${methodName}"`);
+
+        const method = cached.methods.find(m => {
+            const match = m.className === className && m.name === methodName;
+            if (!match) {
+                this.logger.logDebug(`      ❌ No match: ${m.className}::${m.name}`);
+            }
+            return match;
+        });
 
         if (method) {
+            this.logger.logDebug(`   ✅ Found method! Updating status to: ${status}`);
             method.status = status;
             method.lastRun = new Date();
             method.errorMessage = errorMessage;
@@ -350,7 +460,7 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
         }
 
         this.logger.logDebug(`🔄 Loading collection: ${collection.name}`);
-        
+
         try {
             if (!vscode.workspace.workspaceFolders) {
                 this.logger.logWarning(`⚠️ No workspace folder found`);
@@ -365,19 +475,40 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
                 const collectionPath = path.join(workspaceFolder.uri.fsPath, collection.path);
                 this.logger.logDebug(`📁 Getting files for collection: ${collection.name}`);
                 this.logger.logDebug(`📂 Scanning directory: ${collectionPath}`);
-                
+
                 if (fs.existsSync(collectionPath)) {
                     const pattern = collection.pattern || '**/*Test.php';
                     this.logger.logDebug(`🔍 Search pattern: ${pattern}`);
-                    const phpFiles = this.getPhpTestFiles(collectionPath, pattern);
-                    this.logger.logDebug(`📄 ${phpFiles.length} PHP files found`);
+
+                    // Get files by pattern (optimized)
+                    let phpFiles = this.getPhpTestFiles(collectionPath, pattern);
+                    this.logger.logDebug(`📄 ${phpFiles.length} PHP files found by pattern`);
+                    this.logger.logDebug(`📋 Pattern files: ${phpFiles.map(f => path.basename(f.fsPath)).join(', ')}`);
+
+                    // If testBaseClasses are configured, also find files by inheritance
+                    if (collection.testBaseClasses && collection.testBaseClasses.length > 0) {
+                        this.logger.logDebug(`🔍 Also searching for files by inheritance from base classes: ${collection.testBaseClasses.join(', ')}`);
+                        const inheritanceFiles = await this.getPhpFilesByInheritance(collectionPath, pattern, collection.testBaseClasses);
+                        this.logger.logDebug(`📄 ${inheritanceFiles.length} additional PHP files found by inheritance`);
+                        this.logger.logDebug(`📋 Inheritance files BEFORE merge: ${inheritanceFiles.map(f => path.basename(f.fsPath)).join(', ')}`);
+
+                        const beforeMerge = phpFiles.length;
+                        phpFiles = this.mergeUniqueFiles(phpFiles, inheritanceFiles);
+                        const afterMerge = phpFiles.length;
+                        this.logger.logDebug(`🔗 After merge: ${beforeMerge} + ${inheritanceFiles.length} = ${afterMerge} files`);
+                        this.logger.logDebug(`📋 All files after merge: ${phpFiles.map(f => path.basename(f.fsPath)).join(', ')}`);
+                    }
+
                     files.push(...phpFiles);
+                    this.logger.logDebug(`✅ Total files to parse: ${phpFiles.length}`);
 
                     // Parse each PHP file to extract test methods
                     for (const fileUri of phpFiles) {
+                        this.logger.logDebug(`📖 Parsing file: ${path.basename(fileUri.fsPath)}`);
                         const fileMethods = await this.testParser.parsePhpTestFile(fileUri.fsPath, collection);
+                        this.logger.logDebug(`   ✅ Found ${fileMethods.length} methods in ${path.basename(fileUri.fsPath)}`);
                         methods.push(...fileMethods);
-                        
+
                         // Create a TestFile
                         const testFile: TestFile = {
                             filePath: fileUri.fsPath,
@@ -392,10 +523,36 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
                         };
                         testFiles.push(testFile);
                     }
+                    this.logger.logDebug(`🎯 Total methods parsed: ${methods.length}`);
+                    this.logger.logDebug(`📚 Total test files created: ${testFiles.length}`);
+                }
+            }
+
+            // Merge with existing cache to preserve test status
+            const existingCache = this.cachedCollections.get(collection.name);
+            if (existingCache) {
+                this.logger.logDebug(`🔄 Merging new methods with existing cache to preserve status...`);
+                const existingMethodMap = new Map<string, TestMethod>();
+                for (const method of existingCache.methods) {
+                    const key = `${method.className}::${method.name}`;
+                    existingMethodMap.set(key, method);
+                }
+
+                // Preserve status from cache for matching methods
+                for (const method of methods) {
+                    const key = `${method.className}::${method.name}`;
+                    const existing = existingMethodMap.get(key);
+                    if (existing) {
+                        method.status = existing.status;
+                        method.lastRun = existing.lastRun;
+                        method.errorMessage = existing.errorMessage;
+                        this.logger.logDebug(`   ✅ Preserved status for ${key}: ${method.status}`);
+                    }
                 }
             }
 
             // Cache it
+            this.logger.logDebug(`💾 Caching collection "${collection.name}": ${methods.length} methods, ${files.length} files, ${testFiles.length} test files`);
             this.cachedCollections.set(collection.name, {
                 collection,
                 files,
@@ -404,9 +561,13 @@ export class TestExplorerProvider implements vscode.TreeDataProvider<TestItem> {
                 lastScan: new Date()
             });
 
+            // Verify cache was set
+            const cachedVerify = this.cachedCollections.get(collection.name);
+            this.logger.logDebug(`✅ Cache verification: ${cachedVerify ? cachedVerify.methods.length : 0} methods in cache`);
+
             // Save cache
             this.cacheService.saveCache(this.cachedCollections);
-            
+
             this.logger.logSuccess(`Collection "${collection.name}" loaded: ${methods.length} methods in ${files.length} files`);
         } catch (error) {
             this.logger.logError(`Error loading collection "${collection.name}"`, error instanceof Error ? error : new Error(String(error)));
