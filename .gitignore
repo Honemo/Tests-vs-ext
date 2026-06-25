@@ -6,3 +6,5 @@ node_modules
 
 # PHP Test Collections Cache (workspace-specific)
 .vscode/php-test-collections-cache*.json
+.claude
+CLAUDE.md
